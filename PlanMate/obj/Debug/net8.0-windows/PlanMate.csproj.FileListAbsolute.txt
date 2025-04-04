@@ -1,0 +1,9 @@
+C:\Users\Jinho\IdeaProjects\CSharp\PlanMate\PlanMate\obj\Debug\net8.0-windows\MainWindow.baml
+C:\Users\Jinho\IdeaProjects\CSharp\PlanMate\PlanMate\obj\Debug\net8.0-windows\MainWindow.g.cs
+C:\Users\Jinho\IdeaProjects\CSharp\PlanMate\PlanMate\obj\Debug\net8.0-windows\App.g.cs
+C:\Users\Jinho\IdeaProjects\CSharp\PlanMate\PlanMate\obj\Debug\net8.0-windows\PlanMate_MarkupCompile.cache
+C:\Users\Jinho\IdeaProjects\CSharp\PlanMate\PlanMate\obj\Debug\net8.0-windows\PlanMate.g.resources
+C:\Users\Jinho\IdeaProjects\CSharp\PlanMate\PlanMate\obj\Debug\net8.0-windows\PlanMate.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\Jinho\IdeaProjects\CSharp\PlanMate\PlanMate\obj\Debug\net8.0-windows\PlanMate.AssemblyInfoInputs.cache
+C:\Users\Jinho\IdeaProjects\CSharp\PlanMate\PlanMate\obj\Debug\net8.0-windows\PlanMate.AssemblyInfo.cs
+C:\Users\Jinho\IdeaProjects\CSharp\PlanMate\PlanMate\obj\Debug\net8.0-windows\PlanMate.csproj.CoreCompileInputs.cache

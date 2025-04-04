@@ -1,0 +1,71 @@
+﻿<Window x:Class="PlanMate.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="PlanMate" Height="800" Width="450" Background="White">
+    <Grid>
+        <!-- 상단: 날짜, 날씨, 프로필 -->
+        <Grid Margin="10" Height="50" VerticalAlignment="Top">
+            <TextBlock Text="{Binding CurrentDate}" 
+               VerticalAlignment="Center" 
+               FontWeight="Bold" FontSize="14"/>
+
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                <Image Source="{Binding WeatherIcon}" Width="30" Height="30" Margin="0,0,5,0"/>
+                <TextBlock Text="{Binding Temperature}" FontWeight="Bold" FontSize="14"/>
+            </StackPanel>
+            <Button Content="👤" HorizontalAlignment="Right" VerticalAlignment="Center" Width="30" Height="30"/>
+        </Grid>
+
+        <!-- 탭 메뉴: 일간 / 월간 / 시간표 -->
+        <TabControl x:Name="MainTab" Margin="10,60,10,80">
+            <!-- 일간 -->
+            <TabItem Header="일간">
+                <StackPanel>
+                    <!-- 해야 할 일 목록 -->
+                    <ListBox x:Name="DailyTaskList">
+                        <!-- 예시 아이템 -->
+                        <ListBoxItem Content="할일 1 - 중요" Background="Red"/>
+                        <ListBoxItem Content="할일 2 - 중간" Background="Orange"/>
+                        <ListBoxItem Content="할일 3 - 낮음" Background="LightGreen"/>
+                    </ListBox>
+                </StackPanel>
+            </TabItem>
+
+            <!-- 월간 -->
+            <TabItem Header="월간">
+                <StackPanel>
+                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,10">
+                        <Button Content="◀" Width="30" Click="OnPrevMonthClick"/>
+                        <TextBlock Text="{Binding CurrentMonthText}" 
+                           FontSize="16" 
+                           FontWeight="Bold" 
+                           Margin="10,0" 
+                           VerticalAlignment="Center"/> 
+                        <Button Content="▶" Width="30" Click="OnNextMonthClick"/>
+                    </StackPanel>
+
+                    <!-- 달력 영역 (구현 필요) -->
+                    <Border Height="500" Background="Black" Margin="10">
+                        <TextBlock Text="여기에 달력 표시" Foreground="White" VerticalAlignment="Center" HorizontalAlignment="Center"/>
+                    </Border>
+                </StackPanel>
+            </TabItem>
+
+            <!-- 시간표 -->
+            <TabItem Header="시간표">
+                <Grid>
+                    <!-- 시간표 영역 (그리드 또는 캘린더 스타일 구현) -->
+                    <Border Background="Black" Margin="10">
+                        <TextBlock Text="시간표 영역" Foreground="White" VerticalAlignment="Center" HorizontalAlignment="Center"/>
+                    </Border>
+                </Grid>
+            </TabItem>
+        </TabControl>
+
+        <!-- 하단 버튼 영역 -->
+        <Grid VerticalAlignment="Bottom" Height="60" Margin="10">
+            <Button Content="✨" Width="50" Height="50" HorizontalAlignment="Left" VerticalAlignment="Center"/>
+            <Button Content="＋" Width="50" Height="50" HorizontalAlignment="Right" VerticalAlignment="Center"/>
+        </Grid>
+    </Grid>
+</Window>
