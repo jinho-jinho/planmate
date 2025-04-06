@@ -1,0 +1,69 @@
+# ========================
+# Visual Studio / .NET
+# ========================
+.vs/
+bin/
+obj/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+*.cache
+*.pdb
+*.ilk
+*.log
+*.tlog
+*.vspscc
+*.vssscc
+*.dbmdl
+*.psess
+*.vsp
+*.vspx
+*.vc.db
+*.VC.opendb
+
+# Resharper
+_ReSharper*/
+*.[Rr]e[Ss]harper
+*.DotSettings.user
+
+# Build results
+*.exe
+*.dll
+*.app
+*.lib
+*.nupkg
+*.snk
+
+# NuGet packages
+*.nupkg
+# The packages folder can be ignored because of Package Restore
+**/packages/*
+!**/packages/build/
+!**/packages/repositories.config
+
+# DotCover
+*.dotCover
+
+# Rider
+.idea/
+*.sln.iml
+
+# ========================
+# VS Code
+# ========================
+.vscode/
+.history/
+
+# ========================
+# IntelliJ IDEA
+# ========================
+*.iml
+.idea/
+out/
+
+# ========================
+# Others
+# ========================
+*.DS_Store
+Thumbs.db
