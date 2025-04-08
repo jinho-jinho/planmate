@@ -50,6 +50,12 @@ namespace PlanMate.Views
                 TimeSpan startTime = TimeSpan.Parse(StartTimeBox.Text);
                 TimeSpan endTime = TimeSpan.Parse(EndTimeBox.Text);
 
+                if ((startDate > endDate) || (startDate == endDate && startTime > endTime))
+                {
+                    MessageBox.Show("시작 시간이 종료 시간보다 늦을 수 없습니다.");
+                    return;
+                }
+
                 CreatedTask = new TaskItem
                 {
                     Name = name,
