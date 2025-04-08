@@ -31,6 +31,17 @@ namespace PlanMate.Views
         {
             if (EndTimeBox.Text == "00:00") EndTimeBox.Text = "";
         }
+        private void TodayOnlyCheckBox_Checked(object sender, RoutedEventArgs e)
+        {
+            StartDatePicker.IsEnabled = false;
+            EndDatePicker.IsEnabled = false;
+        }
+
+        private void TodayOnlyCheckBox_Unchecked(object sender, RoutedEventArgs e)
+        {
+            StartDatePicker.IsEnabled = true;
+            EndDatePicker.IsEnabled = true;
+        }
 
         private void AddTask_Click(object sender, RoutedEventArgs e)
         {
