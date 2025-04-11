@@ -23,15 +23,20 @@ public partial class MainWindow : Window
 {
     private ObservableCollection<TaskItem> taskList = new();
     private readonly string savePath = Path.Combine(
-        Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
-        "PlanMate", "tasks.json");
-
+        Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "PlanMate", "tasks.json");
+    string memoPath = Path.Combine(
+        Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "PlanMate", "memo.json");
     public MainWindow()
     {
         InitializeComponent();
         DataContext = new MainViewModel();
         LoadTasks();
         DailyTaskList.ItemsSource = taskList;
+        if (File.Exists(memoPath))
+        {
+            MemoBox.Text = File.ReadAllText(memoPath);
+        }
+
     }
 
     private void AddTaskButton_Click(object sender, RoutedEventArgs e)
@@ -91,4 +96,16 @@ public partial class MainWindow : Window
             taskList.Add(t);
     }
 
+    private void MemoBox_TextChanged(object sender, TextChangedEventArgs e)
+    {
+        try
+        {
+            Directory.CreateDirectory(Path.GetDirectoryName(memoPath)!);
+            File.WriteAllText(memoPath, MemoBox.Text);
+        }
+        catch (Exception ex)
+        {
+            MessageBox.Show("메모 저장 실패: " + ex.Message);
+        }
+    }
 }

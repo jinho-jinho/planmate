@@ -20,7 +20,7 @@
             <Button Content="👤" HorizontalAlignment="Right" VerticalAlignment="Center" Width="30" Height="30"/>
         </Grid>
 
-        <!-- 탭 메뉴: 일간 / 월간 / 시간표 -->    
+        <!-- 탭 메뉴: 일간 / 월간 / 시간표 -->
         <TabControl x:Name="MainTab" Margin="10,60,10,80">
             <!-- 일간 -->
             <TabItem Header="일간">
@@ -72,12 +72,13 @@
                     </Border>
                 </Grid>
             </TabItem>
-            
+
             <TabItem Header="메모">
-                <Grid>
-                    
+                <Grid Margin="5">
+                    <TextBox x:Name="MemoBox" AcceptsReturn="True" VerticalScrollBarVisibility="Auto" TextWrapping="Wrap" FontSize="14" TextChanged="MemoBox_TextChanged"/>
                 </Grid>
             </TabItem>
+
         </TabControl>
 
         <!-- 하단 버튼 영역 -->
