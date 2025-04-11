@@ -40,6 +40,7 @@ public partial class MainWindow : Window
         if (addWindow.ShowDialog() == true)
         {
             taskList.Add(addWindow.CreatedTask);
+            RefreshTaskList();
             SaveTasks();
         }
     }
@@ -75,16 +76,19 @@ public partial class MainWindow : Window
             MessageBox.Show($"저장 오류: {ex.Message}");
         }
     }
-    private void AddTaskToList(TaskItem task)
+    private void RefreshTaskList()
     {
-        taskList.Add(task);
+        var today = DateTime.Today;
 
         var sorted = taskList.OrderBy(t =>
             t.Importance == "상" ? 0 :
-            t.Importance == "중" ? 1 : 2).ToList();
+            t.Importance == "중" ? 1 : 2
+        ).ThenBy(t => Math.Abs((t.EndDate - today).Days)) // 오늘 기준 종료일이 가까울수록
+        .ToList();
 
         taskList.Clear();
         foreach (var t in sorted)
             taskList.Add(t);
     }
+
 }

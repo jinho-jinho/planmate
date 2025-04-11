@@ -11,30 +11,29 @@
         <TextBlock Text="할 일 이름"/>
         <TextBox x:Name="TaskNameBox" Margin="0,5"/>
 
-        <TextBlock Text="오늘 하루만" Margin="0,10,0,0"/>
-        <CheckBox x:Name="TodayOnlyCheckBox" Content="오늘 하루만" Checked="TodayOnlyCheckBox_Checked" Unchecked="TodayOnlyCheckBox_Unchecked"/>
-
         <TextBlock Text="시작일 / 종료일" Margin="0,10,0,0"/>
         <StackPanel Orientation="Horizontal">
             <DatePicker x:Name="StartDatePicker" Width="150" IsEnabled="True"/>
             <DatePicker x:Name="EndDatePicker" Width="150" Margin="10,0,0,0" IsEnabled="True"/>
         </StackPanel>
+        <CheckBox x:Name="TodayOnlyCheckBox" Content="오늘 하루만" Checked="TodayOnlyCheckBox_Checked" Unchecked="TodayOnlyCheckBox_Unchecked"/>
 
         <TextBlock Text="시작 시간 / 종료 시간" Margin="0,10,0,0"/>
         <StackPanel Orientation="Horizontal">
             <TextBox x:Name="StartTimeBox" Width="70" Text="00:00" Foreground="Gray" GotFocus="StartTimeBox_GotFocus"/>
             <TextBox x:Name="EndTimeBox" Width="70" Margin="10,0,0,0" Text="00:00" Foreground="Gray" GotFocus="EndTimeBox_GotFocus"/>
         </StackPanel>
-
+        <CheckBox x:Name="AllDay" Content="하루종일" Checked="AllDay_Checked" Unchecked="AllDay_Unchecked"/>
+        
         <TextBlock Text="중요도 선택" Margin="0,10,0,0"/>
-        <StackPanel Orientation="Horizontal">
+        <StackPanel Orientation="Horizontal" x:Name="ImportancePanel">
             <Button Content="상" Background="Red" Click="Importance_Click" Tag="상" Margin="5"/>
             <Button Content="중" Background="Orange" Click="Importance_Click" Tag="중" Margin="5"/>
             <Button Content="하" Background="LightGreen" Click="Importance_Click" Tag="하" Margin="5"/>
         </StackPanel>
 
         <TextBlock Text="세부 정보 (선택)" Margin="0,10,0,0"/>
-        <TextBox x:Name="DetailBox" Height="60" AcceptsReturn="True"/>
+        <TextBox x:Name="DetailBox" Height="130" AcceptsReturn="True"/>
 
         <Button Content="추가" Width="100" Margin="0,20,0,0" HorizontalAlignment="Center" Click="AddTask_Click"/>
     </StackPanel>
