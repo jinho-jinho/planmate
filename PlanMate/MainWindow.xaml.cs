@@ -108,4 +108,15 @@ public partial class MainWindow : Window
             MessageBox.Show("메모 저장 실패: " + ex.Message);
         }
     }
+
+    private void OpacitySlider_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
+    {
+        this.Opacity = e.NewValue;
+    }
+    private void Window_MouseDown(object sender, MouseButtonEventArgs e)
+    {
+        if (e.ChangedButton == MouseButton.Left)
+            this.DragMove();
+    }
+
 }
