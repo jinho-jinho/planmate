@@ -14,7 +14,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("PlanMate")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+059293299ce9bca46c509492b1e66c38045e1b8e")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+557f6077ff57c6270b348d1d53c2970da17fb507")]
 [assembly: System.Reflection.AssemblyProductAttribute("PlanMate")]
 [assembly: System.Reflection.AssemblyTitleAttribute("PlanMate")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

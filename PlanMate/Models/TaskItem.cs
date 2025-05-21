@@ -16,6 +16,7 @@ namespace PlanMate.Models
         public string Importance { get; set; } // "상", "중", "하"
         public string? Details { get; set; }
         public bool IsCompleted { get; set; }
+        public List<string> RelatedDocs { get; set; } = new();
 
         public string DDay
         {

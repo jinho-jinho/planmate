@@ -2,39 +2,80 @@
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:local="clr-namespace:PlanMate.Converters"
-        Title="할 일 추가" Height="500" Width="380">
+        Title="할 일 추가" Height="550" Width="380">
     <Window.Resources>
         <local:ImportanceToColorConverter x:Key="ImportanceToColorConverter"/>
     </Window.Resources>
+    <ScrollViewer Height="550" VerticalScrollBarVisibility="Auto">
+        <StackPanel Margin="20" VerticalAlignment="Top">
+            <TextBlock Text="할 일 이름"/>
+            <TextBox x:Name="TaskNameBox" Margin="0,5"/>
 
-    <StackPanel Margin="20" VerticalAlignment="Top">
-        <TextBlock Text="할 일 이름"/>
-        <TextBox x:Name="TaskNameBox" Margin="0,5"/>
+            <TextBlock Text="시작일 / 종료일" Margin="0,10,0,0"/>
+            <StackPanel Orientation="Horizontal">
+                <DatePicker x:Name="StartDatePicker" Width="150" IsEnabled="True"/>
+                <DatePicker x:Name="EndDatePicker" Width="150" Margin="10,0,0,0" IsEnabled="True"/>
+            </StackPanel>
+            <CheckBox x:Name="TodayOnlyCheckBox" Content="오늘 하루만" Checked="TodayOnlyCheckBox_Checked" Unchecked="TodayOnlyCheckBox_Unchecked"/>
 
-        <TextBlock Text="시작일 / 종료일" Margin="0,10,0,0"/>
-        <StackPanel Orientation="Horizontal">
-            <DatePicker x:Name="StartDatePicker" Width="150" IsEnabled="True"/>
-            <DatePicker x:Name="EndDatePicker" Width="150" Margin="10,0,0,0" IsEnabled="True"/>
+            <TextBlock Text="시작 시간 / 종료 시간" Margin="0,10,0,0"/>
+            <StackPanel Orientation="Horizontal">
+                <TextBox x:Name="StartTimeBox" Width="70" Text="00:00" Foreground="Gray" GotFocus="StartTimeBox_GotFocus"/>
+                <TextBox x:Name="EndTimeBox" Width="70" Margin="10,0,0,0" Text="00:00" Foreground="Gray" GotFocus="EndTimeBox_GotFocus"/>
+            </StackPanel>
+            <CheckBox x:Name="AllDay" Content="하루종일" Checked="AllDay_Checked" Unchecked="AllDay_Unchecked"/>
+
+            <TextBlock Text="중요도 선택" Margin="0,10,0,0"/>
+            <StackPanel Orientation="Horizontal" x:Name="ImportancePanel">
+                <Button Content="상" Background="Red" Click="Importance_Click" Tag="상" Margin="5"/>
+                <Button Content="중" Background="Orange" Click="Importance_Click" Tag="중" Margin="5"/>
+                <Button Content="하" Background="LightGreen" Click="Importance_Click" Tag="하" Margin="5"/>
+            </StackPanel>
+
+            <TextBlock Text="세부 정보 (선택)" Margin="0,10,0,0"/>
+            <TextBox x:Name="DetailBox" Height="130" AcceptsReturn="True"/>
+
+            <TextBlock Text="관련 문서 추가 (선택)" Margin="0,10,0,0"/>
+            <Button Content="📎 문서 추가"
+                Width="100"
+                Margin="0,5,0,5"
+                Click="AddDoc_Click"
+                HorizontalAlignment="Left"/>
+
+            <ListBox x:Name="DocListBox" Margin="0,5,0,0" BorderThickness="0">
+                <ListBox.ItemTemplate>
+                    <DataTemplate>
+                        <DockPanel Margin="2" ToolTip="{Binding FullPath}">
+                            <!-- 파일 아이콘 -->
+                            <Image Source="/Resources/file_icon.png"
+                               Width="16" Height="16" Margin="5,0"
+                               VerticalAlignment="Center"
+                               DockPanel.Dock="Left"/>
+
+                            <!-- 파일 이름 (열기 버튼) -->
+                            <Button Content="{Binding FileName}"
+                                Background="Transparent"
+                                BorderThickness="0"
+                                Foreground="Black"
+                                Padding="0"
+                                HorizontalAlignment="Stretch"
+                                Click="OpenDoc_Click"
+                                Tag="{Binding FullPath}"/>
+
+                            <!-- 삭제 버튼 -->
+                            <Button Content="❌"
+                                Width="30"
+                                Margin="5,0"
+                                DockPanel.Dock="Right"
+                                Tag="{Binding FullPath}"
+                                Click="RemoveDoc_Click"/>
+                        </DockPanel>
+                    </DataTemplate>
+                </ListBox.ItemTemplate>
+            </ListBox>
+
+
+            <Button Content="확인" Width="100" Margin="0,20,0,0" HorizontalAlignment="Center" Click="AddTask_Click"/>
         </StackPanel>
-        <CheckBox x:Name="TodayOnlyCheckBox" Content="오늘 하루만" Checked="TodayOnlyCheckBox_Checked" Unchecked="TodayOnlyCheckBox_Unchecked"/>
-
-        <TextBlock Text="시작 시간 / 종료 시간" Margin="0,10,0,0"/>
-        <StackPanel Orientation="Horizontal">
-            <TextBox x:Name="StartTimeBox" Width="70" Text="00:00" Foreground="Gray" GotFocus="StartTimeBox_GotFocus"/>
-            <TextBox x:Name="EndTimeBox" Width="70" Margin="10,0,0,0" Text="00:00" Foreground="Gray" GotFocus="EndTimeBox_GotFocus"/>
-        </StackPanel>
-        <CheckBox x:Name="AllDay" Content="하루종일" Checked="AllDay_Checked" Unchecked="AllDay_Unchecked"/>
-        
-        <TextBlock Text="중요도 선택" Margin="0,10,0,0"/>
-        <StackPanel Orientation="Horizontal" x:Name="ImportancePanel">
-            <Button Content="상" Background="Red" Click="Importance_Click" Tag="상" Margin="5"/>
-            <Button Content="중" Background="Orange" Click="Importance_Click" Tag="중" Margin="5"/>
-            <Button Content="하" Background="LightGreen" Click="Importance_Click" Tag="하" Margin="5"/>
-        </StackPanel>
-
-        <TextBlock Text="세부 정보 (선택)" Margin="0,10,0,0"/>
-        <TextBox x:Name="DetailBox" Height="130" AcceptsReturn="True"/>
-
-        <Button Content="추가" Width="100" Margin="0,20,0,0" HorizontalAlignment="Center" Click="AddTask_Click"/>
-    </StackPanel>
+    </ScrollViewer>
 </Window>
