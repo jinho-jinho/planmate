@@ -14,10 +14,21 @@ namespace PlanMate.Views
         public TaskItem CreatedTask { get; private set; }
         private string selectedImportance = "중";
         private List<string> relatedDocs = new();
+        private bool isEditMode;
 
         public AddTaskWindow()
         {
             InitializeComponent();
+            CreatedTask = new TaskItem(); // 신규 Task
+            DataContext = CreatedTask;
+            isEditMode = false;
+        }
+        public AddTaskWindow(TaskItem existingTask)
+        {
+            InitializeComponent();
+            CreatedTask = existingTask;
+            DataContext = CreatedTask;
+            isEditMode = true;
         }
 
         // 🔹 관련 문서 추가 (탐색기에서 선택)
@@ -80,8 +91,6 @@ namespace PlanMate.Views
             public string FileName { get; set; }
             public string FullPath { get; set; }
         }
-
-        // 나머지 기존 코드 (중요도 선택, 시간 처리 등)는 그대로 유지
 
         private void Importance_Click(object sender, RoutedEventArgs e)
         {
@@ -187,21 +196,24 @@ namespace PlanMate.Views
                     return;
                 }
 
-                CreatedTask = new TaskItem
+                if (!isEditMode)
                 {
-                    Name = name,
-                    StartDate = startDate,
-                    EndDate = endDate,
-                    StartTime = startInput,
-                    EndTime = endInput,
-                    Importance = selectedImportance,
-                    Details = DetailBox.Text,
-                    IsCompleted = false,
-                    RelatedDocs = relatedDocs
-                };
+                    CreatedTask = new TaskItem();
+                }
+
+                CreatedTask.Name = name;
+                CreatedTask.StartDate = startDate;
+                CreatedTask.EndDate = endDate;
+                CreatedTask.StartTime = startInput;
+                CreatedTask.EndTime = endInput;
+                CreatedTask.Importance = selectedImportance;
+                CreatedTask.Details = DetailBox.Text;
+                CreatedTask.IsCompleted = false;
+                CreatedTask.RelatedDocs = new List<string>(relatedDocs);
 
                 DialogResult = true;
                 Close();
+
             }
             catch (Exception ex)
             {
@@ -227,6 +239,36 @@ namespace PlanMate.Views
                 {
                     MessageBox.Show("파일 열기 실패: " + ex.Message);
                 }
+            }
+        }
+        private void Window_Loaded(object sender, RoutedEventArgs e)
+        {
+            if (isEditMode && CreatedTask != null)
+            {
+                TaskNameBox.Text = CreatedTask.Name;
+                DetailBox.Text = CreatedTask.Details;
+                StartTimeBox.Text = CreatedTask.StartTime;
+                EndTimeBox.Text = CreatedTask.EndTime;
+                StartDatePicker.SelectedDate = CreatedTask.StartDate;
+                EndDatePicker.SelectedDate = CreatedTask.EndDate;
+
+                foreach (var child in ImportancePanel.Children)
+                {
+                    if (child is Button b)
+                    {
+                        b.BorderThickness = new Thickness(1);
+                        if (b.Tag is string tag && tag == CreatedTask.Importance)
+                        {
+                            b.BorderThickness = new Thickness(3);
+                            b.BorderBrush = Brushes.Blue;
+                        }
+                    }
+                }
+
+                selectedImportance = CreatedTask.Importance;
+
+                relatedDocs = new List<string>(CreatedTask.RelatedDocs ?? new());
+                UpdateDocListBox();
             }
         }
 

@@ -41,14 +41,28 @@ public partial class MainWindow : Window
 
     private void AddTaskButton_Click(object sender, RoutedEventArgs e)
     {
-        var addWindow = new AddTaskWindow();
-        if (addWindow.ShowDialog() == true)
+        int tabIndex = MainTab.SelectedIndex; // 0: 일간, 1: 월간, 2: 시간표, 3: 메모
+
+        if (tabIndex == 0 || tabIndex == 1) // 일간, 월간
         {
-            taskList.Add(addWindow.CreatedTask);
-            RefreshTaskList();
-            SaveTasks();
+            var addWindow = new AddTaskWindow();
+            if (addWindow.ShowDialog() == true)
+            {
+                taskList.Add(addWindow.CreatedTask);
+                RefreshTaskList();
+                SaveTasks();
+            }
+        }
+        else if(tabIndex == 2) // 시간표
+        {
+            
+        }
+        else if (tabIndex == 3) // 메모
+        {
+            
         }
     }
+
 
     private void LoadTasks()
     {
@@ -95,6 +109,51 @@ public partial class MainWindow : Window
         foreach (var t in sorted)
             taskList.Add(t);
     }
+    private void DailyTaskList_SelectionChanged(object sender, SelectionChangedEventArgs e)
+    {
+        if (DailyTaskList.SelectedItem is TaskItem selectedTask)
+        {
+            var editWindow = new AddTaskWindow(selectedTask);  // 기존 Task 전달
+            if (editWindow.ShowDialog() == true)
+            {
+                // 변경사항은 이미 바인딩된 TaskItem에 반영됨
+                RefreshTaskList();
+                SaveTasks();
+            }
+
+            DailyTaskList.SelectedItem = null; // 다시 클릭 가능하도록 선택 해제
+        }
+    }
+    private void SortByImportanceThenDDay_Click(object sender, RoutedEventArgs e)
+    {
+        var today = DateTime.Today;
+
+        var sorted = taskList.OrderBy(t =>
+            t.Importance == "상" ? 0 :
+            t.Importance == "중" ? 1 : 2
+        ).ThenBy(t => (t.EndDate - today).Days).ToList();
+
+        taskList.Clear();
+        foreach (var t in sorted)
+            taskList.Add(t);
+    }
+
+    private void SortByDDayThenImportance_Click(object sender, RoutedEventArgs e)
+    {
+        var today = DateTime.Today;
+
+        var sorted = taskList.OrderBy(t => (t.EndDate - today).Days)
+            .ThenBy(t =>
+                t.Importance == "상" ? 0 :
+                t.Importance == "중" ? 1 : 2
+            ).ToList();
+
+        taskList.Clear();
+        foreach (var t in sorted)
+            taskList.Add(t);
+    }
+
+
 
     private void MemoBox_TextChanged(object sender, TextChangedEventArgs e)
     {

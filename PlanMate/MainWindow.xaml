@@ -54,23 +54,31 @@
                 <TabControl x:Name="MainTab" Margin="10,60,10,80">
                     <!-- 일간 -->
                     <TabItem Header="일간">
-                        <StackPanel>
-                            <!-- 해야 할 일 목록 -->
-                            <ListBox x:Name="DailyTaskList">
-                                <ListBox.ItemTemplate>
-                                    <DataTemplate>
-                                        <Border Background="{Binding Importance, Converter={StaticResource ImportanceToColorConverter}}" Margin="5" Padding="5" CornerRadius="5">
-                                            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
-                                                <TextBlock Text="{Binding Name}" FontWeight="Bold" Foreground="White"/>
-                                                <TextBlock Text="   "/>
-                                                <TextBlock Text="{Binding DDay}" FontSize="12" Foreground="White"/>
-                                            </StackPanel>
-                                        </Border>
-                                    </DataTemplate>
-                                </ListBox.ItemTemplate>
-                            </ListBox>
-                        </StackPanel>
+                        <Grid>
+                            <!-- 1. ListBox를 ScrollViewer로 감쌈 -->
+                            <ScrollViewer VerticalScrollBarVisibility="Auto">
+                                <ListBox x:Name="DailyTaskList" SelectionChanged="DailyTaskList_SelectionChanged">
+                                    <ListBox.ItemTemplate>
+                                        <DataTemplate>
+                                            <Border Background="{Binding Importance, Converter={StaticResource ImportanceToColorConverter}}" Margin="5" Padding="5" CornerRadius="5">
+                                                <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                                                    <TextBlock Text="{Binding Name}" FontWeight="Bold" Foreground="White"/>
+                                                    <TextBlock Text="   "/>
+                                                    <TextBlock Text="{Binding DDay}" FontSize="12" Foreground="White"/>
+                                                </StackPanel>
+                                            </Border>
+                                        </DataTemplate>
+                                    </ListBox.ItemTemplate>
+                                </ListBox>
+                            </ScrollViewer>
+
+                            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Bottom">
+                                <Button Content="중요도 → D-Day" Click="SortByImportanceThenDDay_Click" Margin="0,0,5,5"/>
+                                <Button Content="D-Day → 중요도" Click="SortByDDayThenImportance_Click" Margin="0,0,5,5"/>
+                            </StackPanel>
+                        </Grid>
                     </TabItem>
+
 
                     <!-- 월간 -->
                     <TabItem Header="월간">
