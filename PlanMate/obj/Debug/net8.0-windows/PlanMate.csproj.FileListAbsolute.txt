@@ -21,3 +21,4 @@ C:\Users\Jinho\IdeaProjects\CSharp\PlanMate\PlanMate\obj\Debug\net8.0-windows\Vi
 C:\Users\Jinho\IdeaProjects\CSharp\PlanMate\PlanMate\obj\Debug\net8.0-windows\Views\AddTaskWindow.g.cs
 C:\Users\Jinho\IdeaProjects\CSharp\PlanMate\PlanMate\obj\Debug\net8.0-windows\GeneratedInternalTypeHelper.g.cs
 C:\Users\Jinho\IdeaProjects\CSharp\PlanMate\PlanMate\obj\Debug\net8.0-windows\PlanMate_MarkupCompile.lref
+C:\Users\Jinho\IdeaProjects\CSharp\PlanMate\PlanMate\obj\Debug\net8.0-windows\PlanMate.sourcelink.json
