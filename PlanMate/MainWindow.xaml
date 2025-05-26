@@ -3,7 +3,7 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:local="clr-namespace:PlanMate.Converters"
         Title="PlanMate" Height="800" Width="450"
-        WindowStyle="None" AllowsTransparency="True" Background="Transparent"
+        WindowStyle="None" AllowsTransparency="True" Background="#01FFFFFF"
         MouseDown="Window_MouseDown">
     <Window.Resources>
         <local:ImportanceToColorConverter x:Key="ImportanceToColorConverter"/>
@@ -55,7 +55,6 @@
                     <!-- 일간 -->
                     <TabItem Header="일간">
                         <Grid>
-                            <!-- 1. ListBox를 ScrollViewer로 감쌈 -->
                             <ScrollViewer VerticalScrollBarVisibility="Auto">
                                 <ListBox x:Name="DailyTaskList" SelectionChanged="DailyTaskList_SelectionChanged">
                                     <ListBox.ItemTemplate>
@@ -73,8 +72,8 @@
                             </ScrollViewer>
 
                             <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Bottom">
-                                <Button Content="중요도 → D-Day" Click="SortByImportanceThenDDay_Click" Margin="0,0,5,5"/>
-                                <Button Content="D-Day → 중요도" Click="SortByDDayThenImportance_Click" Margin="0,0,5,5"/>
+                                <Button Content="중요도순" Click="SortByImportanceThenDDay_Click" Margin="0,0,5,5"/>
+                                <Button Content="D-Day순" Click="SortByDDayThenImportance_Click" Margin="0,0,5,5"/>
                             </StackPanel>
                         </Grid>
                     </TabItem>
@@ -82,22 +81,45 @@
 
                     <!-- 월간 -->
                     <TabItem Header="월간">
-                        <StackPanel>
-                            <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,10">
-                                <!--<Button Content="◀" Width="30" Click="OnPrevMonthClick"/>
-                                <TextBlock Text="{Binding CurrentMonthText}" 
-                                           FontSize="16" 
-                                           FontWeight="Bold" 
-                                           Margin="10,0" 
-                                           VerticalAlignment="Center"/> 
-                                <Button Content="▶" Width="30" Click="OnNextMonthClick"/>-->
+                        <Grid>
+                            <!-- 월 타이틀 & 이전/다음 월 버튼 -->
+                            <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Top" Margin="0,10">
+                                <Button Content="◀" Width="30" Click="OnPrevMonthClick"/>
+                                <TextBlock x:Name="MonthTitle" FontSize="16" FontWeight="Bold" Margin="10,0"/>
+                                <Button Content="▶" Width="30" Click="OnNextMonthClick"/>
+                                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                    <Button x:Name="OpenMonthPickerButton" Content="📅" Width="30" Click="OpenMonthPickerButton_Click" />
+                                    <Popup 
+                                        x:Name="MonthPopup"
+                                        PlacementTarget="{Binding ElementName=OpenMonthPickerButton}"
+                                        Placement="Bottom"
+                                        StaysOpen="False"
+                                        AllowsTransparency="True"
+                                        PopupAnimation="Fade">
+                                        <Border Background="White" BorderBrush="Gray" BorderThickness="1" Padding="5">
+                                            <Calendar
+                                                x:Name="MonthCalendar"
+                                                DisplayMode="Year"
+                                                DisplayModeChanged="MonthCalendar_DisplayModeChanged"/>
+                                        </Border>       
+                                    </Popup>
+                                </StackPanel>
                             </StackPanel>
 
-                            <!-- 달력 영역 (구현 필요) -->
-                            <Border Height="570" Background="Black" Margin="10">
-                                <TextBlock Text="여기에 달력 표시" Foreground="White" VerticalAlignment="Center" HorizontalAlignment="Center"/>
-                            </Border>
-                        </StackPanel>
+                            <!-- 요일 헤더 -->
+                            <UniformGrid Rows="1" Columns="7" Margin="10,40,10,0">
+                                <TextBlock Text="일" TextAlignment="Center" Foreground="Red"/>
+                                <TextBlock Text="월" TextAlignment="Center"/>
+                                <TextBlock Text="화" TextAlignment="Center"/>
+                                <TextBlock Text="수" TextAlignment="Center"/>
+                                <TextBlock Text="목" TextAlignment="Center"/>
+                                <TextBlock Text="금" TextAlignment="Center"/>
+                                <TextBlock Text="토" TextAlignment="Center" Foreground="Blue"/>
+                            </UniformGrid>
+
+                            <!-- 달력 셀 -->
+                            <UniformGrid x:Name="CalendarGrid" Rows="6" Columns="7" Margin="10,70,10,10"/>
+                        </Grid>
                     </TabItem>
 
                     <!-- 시간표 -->

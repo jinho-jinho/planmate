@@ -7,6 +7,7 @@ using System.Text;
 using System.Text.Json;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Controls.Primitives;
 using System.Windows.Data;
 using System.Windows.Documents;
 using System.Windows.Input;
@@ -26,6 +27,10 @@ public partial class MainWindow : Window
         Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "PlanMate", "tasks.json");
     string memoPath = Path.Combine(
         Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "PlanMate", "memo.json");
+    private DateTime currentMonth = DateTime.Today;
+    private Border? selectedBorder = null;
+    private DateTime selectedDate = DateTime.Today; // 🔹 기본 선택: 오늘
+
     public MainWindow()
     {
         InitializeComponent();
@@ -36,8 +41,157 @@ public partial class MainWindow : Window
         {
             MemoBox.Text = File.ReadAllText(memoPath);
         }
+        GenerateCalendar();
 
     }
+
+    private void OpenMonthPickerButton_Click(object sender, RoutedEventArgs e)
+    {
+        MonthCalendar.DisplayDate = currentMonth;
+        MonthCalendar.DisplayMode = CalendarMode.Year;
+        MonthPopup.IsOpen = true;
+    }
+
+    private void MonthCalendar_DisplayModeChanged(object sender, CalendarModeChangedEventArgs e)
+    {
+        if (MonthCalendar.DisplayMode == CalendarMode.Month)
+        {
+            var selected = MonthCalendar.DisplayDate;
+            currentMonth = new DateTime(selected.Year, selected.Month, 1);
+            GenerateCalendar();
+            MonthPopup.IsOpen = false; // 팝업 닫기
+        }
+    }
+
+
+    private void GenerateCalendar()
+    {
+        CalendarGrid.Children.Clear();
+        MonthTitle.Text = currentMonth.ToString("yyyy년 M월");
+
+        var firstDay = new DateTime(currentMonth.Year, currentMonth.Month, 1);
+        int daysInMonth = DateTime.DaysInMonth(currentMonth.Year, currentMonth.Month);
+        int startOffset = (int)firstDay.DayOfWeek;
+
+        for (int i = 0; i < 42; i++)
+        {
+            DateTime? date = null;
+            if (i >= startOffset && i < startOffset + daysInMonth)
+                date = firstDay.AddDays(i - startOffset);
+
+            var border = new Border
+            {
+                BorderBrush = Brushes.Gray,
+                BorderThickness = new Thickness(0.5),
+                Margin = new Thickness(1),
+                Background = Brushes.Transparent,
+                CornerRadius = new CornerRadius(4),
+                Cursor = Cursors.Hand
+            };
+
+            var stack = new StackPanel();
+
+            if (date != null)
+            {
+                DateTime currentDate = date.Value;
+
+                // 선택된 날짜 강조
+                if (currentDate.Date == selectedDate.Date)
+                {
+                    border.BorderBrush = Brushes.DeepSkyBlue;
+                    border.BorderThickness = new Thickness(2);
+                    selectedBorder = border;
+                }
+
+                // 날짜 텍스트
+                var dateText = new TextBlock
+                {
+                    Text = currentDate.Day.ToString(),
+                    FontWeight = FontWeights.SemiBold,
+                    HorizontalAlignment = HorizontalAlignment.Right,
+                    Margin = new Thickness(2),
+                    IsHitTestVisible = false
+                };
+                stack.Children.Add(dateText);
+
+                // 할 일 필터링
+                var tasksOnDate = taskList.Where(t =>
+                    t.StartDate.Date <= currentDate.Date &&
+                    t.EndDate.Date >= currentDate.Date).ToList();
+
+                foreach (var task in tasksOnDate.Take(2))
+                {
+                    var taskText = new Border
+                    {
+                        CornerRadius = new CornerRadius(3),
+                        Background = task.Importance == "상" ? Brushes.IndianRed :
+                                     task.Importance == "중" ? Brushes.Orange :
+                                                               Brushes.LightGreen,
+                        Margin = new Thickness(0, 1, 0, 0),
+                        Padding = new Thickness(1),
+                        IsHitTestVisible = false,
+                        Child = new TextBlock
+                        {
+                            Text = task.Name,
+                            FontSize = 8,
+                            TextTrimming = TextTrimming.CharacterEllipsis,
+                            Foreground = Brushes.White,
+                            IsHitTestVisible = false
+                        }
+                    };
+                    stack.Children.Add(taskText);
+                }
+
+                // 셀 클릭 이벤트
+                border.PreviewMouseLeftButtonDown += (s, e) =>
+                {
+                    selectedDate = currentDate;
+
+                    if (selectedBorder != null)
+                    {
+                        selectedBorder.BorderBrush = Brushes.Gray;
+                        selectedBorder.BorderThickness = new Thickness(0.5);
+                    }
+
+                    border.BorderBrush = Brushes.DeepSkyBlue;
+                    border.BorderThickness = new Thickness(2);
+                    selectedBorder = border;
+                };
+
+                border.MouseLeftButtonDown += (s, e) => 
+                {
+                    if (e.ClickCount == 2)
+                    {
+                        var tasks = taskList.Where(t =>
+                            t.StartDate.Date <= currentDate &&
+                            t.EndDate.Date >= currentDate).ToList();
+
+                        var dayWindow = new DayTaskWindow(currentDate, tasks);
+                        dayWindow.Show();
+                    }
+                };
+
+            }
+
+            border.Child = stack;
+            CalendarGrid.Children.Add(border);
+        }
+
+    }
+
+
+    private void OnPrevMonthClick(object sender, RoutedEventArgs e)
+    {
+        currentMonth = currentMonth.AddMonths(-1);
+        GenerateCalendar();
+    }
+
+    private void OnNextMonthClick(object sender, RoutedEventArgs e)
+    {
+        currentMonth = currentMonth.AddMonths(1);
+        GenerateCalendar();
+    }
+
 
     private void AddTaskButton_Click(object sender, RoutedEventArgs e)
     {
