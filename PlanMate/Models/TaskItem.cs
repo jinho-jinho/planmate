@@ -1,16 +1,47 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using System.ComponentModel;
 
 namespace PlanMate.Models
 {
-    public class TaskItem
+    public class TaskItem : INotifyPropertyChanged
     {
+        public event PropertyChangedEventHandler? PropertyChanged;
+        private void Notify(string prop) => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(prop));
+
         public string Name { get; set; }
-        public DateTime StartDate { get; set; }
-        public DateTime EndDate { get; set; }
+
+        private DateTime startDate;
+        public DateTime StartDate
+        {
+            get => startDate;
+            set
+            {
+                if (startDate != value)
+                {
+                    startDate = value;
+                    Notify(nameof(StartDate));
+                    Notify(nameof(StartDDay));
+                }
+            }
+        }
+
+        private DateTime endDate;
+        public DateTime EndDate
+        {
+            get => endDate;
+            set
+            {
+                if (endDate != value)
+                {
+                    endDate = value;
+                    Notify(nameof(EndDate));
+                    Notify(nameof(EndDDay));
+                    Notify(nameof(DDay));
+                }
+            }
+        }
+
         public string StartTime { get; set; }
         public string EndTime { get; set; }
         public string Importance { get; set; } // "상", "중", "하"
@@ -18,17 +49,19 @@ namespace PlanMate.Models
         public bool IsCompleted { get; set; }
         public List<string> RelatedDocs { get; set; } = new();
 
-        public string DDay
+        public string DDay => CalcDDay(EndDate);
+        public string StartDDay => CalcDDay(StartDate);
+        public string EndDDay => CalcDDay(EndDate);
+
+        private string CalcDDay(DateTime date)
         {
-            get
+            int days = (date.Date - DateTime.Today).Days;
+            return days switch
             {
-                int days = (EndDate.Date - DateTime.Today).Days;
-                if (days == 0) return "D-Day";
-                if (days > 0) return $"D-{days}";
-                return $"D+{-days}";
-            }
+                0 => "D-Day",
+                > 0 => $"D-{days}",
+                _ => $"D+{-days}"
+            };
         }
-
     }
-
 }

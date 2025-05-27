@@ -205,6 +205,7 @@ public partial class MainWindow : Window
                 taskList.Add(addWindow.CreatedTask);
                 RefreshTaskList();
                 SaveTasks();
+                GenerateCalendar(); // 월간 캘린더 갱신
             }
         }
         else if(tabIndex == 2) // 시간표
@@ -249,20 +250,6 @@ public partial class MainWindow : Window
             MessageBox.Show($"저장 오류: {ex.Message}");
         }
     }
-    private void RefreshTaskList()
-    {
-        var today = DateTime.Today;
-
-        var sorted = taskList.OrderBy(t =>
-            t.Importance == "상" ? 0 :
-            t.Importance == "중" ? 1 : 2
-        ).ThenBy(t => Math.Abs((t.EndDate - today).Days)) // 오늘 기준 종료일이 가까울수록
-        .ToList();
-
-        taskList.Clear();
-        foreach (var t in sorted)
-            taskList.Add(t);
-    }
     private void DailyTaskList_SelectionChanged(object sender, SelectionChangedEventArgs e)
     {
         if (DailyTaskList.SelectedItem is TaskItem selectedTask)
@@ -278,6 +265,12 @@ public partial class MainWindow : Window
             DailyTaskList.SelectedItem = null; // 다시 클릭 가능하도록 선택 해제
         }
     }
+    private void RefreshTaskList()
+    {
+        // 기본: 중요도 > 종료일 기준
+        SortByImportanceThenDDay_Click(null, null);
+    }
+
     private void SortByImportanceThenDDay_Click(object sender, RoutedEventArgs e)
     {
         var today = DateTime.Today;
@@ -287,12 +280,23 @@ public partial class MainWindow : Window
             t.Importance == "중" ? 1 : 2
         ).ThenBy(t => (t.EndDate - today).Days).ToList();
 
-        taskList.Clear();
-        foreach (var t in sorted)
-            taskList.Add(t);
+        UpdateTaskList(sorted);
     }
 
-    private void SortByDDayThenImportance_Click(object sender, RoutedEventArgs e)
+    private void SortByStartDateThenImportance_Click(object sender, RoutedEventArgs e)
+    {
+        var today = DateTime.Today;
+
+        var sorted = taskList.OrderBy(t => (t.StartDate - today).Days)
+            .ThenBy(t =>
+                t.Importance == "상" ? 0 :
+                t.Importance == "중" ? 1 : 2
+            ).ToList();
+
+        UpdateTaskList(sorted);
+    }
+
+    private void SortByEndDateThenImportance_Click(object sender, RoutedEventArgs e)
     {
         var today = DateTime.Today;
 
@@ -302,10 +306,16 @@ public partial class MainWindow : Window
                 t.Importance == "중" ? 1 : 2
             ).ToList();
 
+        UpdateTaskList(sorted);
+    }
+
+    private void UpdateTaskList(List<TaskItem> sorted)
+    {
         taskList.Clear();
         foreach (var t in sorted)
             taskList.Add(t);
     }
+
 
 
 
