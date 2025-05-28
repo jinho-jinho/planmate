@@ -59,17 +59,26 @@
                                 <ListBox x:Name="DailyTaskList" SelectionChanged="DailyTaskList_SelectionChanged">
                                     <ListBox.ItemTemplate>
                                         <DataTemplate>
-                                            <Border Background="{Binding Importance, Converter={StaticResource ImportanceToColorConverter}}" Margin="5" Padding="5" CornerRadius="5">
-                                                <StackPanel Orientation="Vertical" HorizontalAlignment="Right">
-                                                    <TextBlock Text="{Binding Name}" FontWeight="Bold" Foreground="White" FontSize="15"/>
-                                                    <TextBlock Foreground="White" FontSize="12">
-    <Run Text="시작일: "/>
-    <Run Text="{Binding StartDDay, Mode=OneWay}" FontWeight="Bold"/>
-    <Run Text="   마감일: "/>
-    <Run Text="{Binding EndDDay, Mode=OneWay}" FontWeight="Bold"/>
-                                                    </TextBlock>
+                                            <Border Background="{Binding Importance, Converter={StaticResource ImportanceToColorConverter}}"
+                    Margin="5" Padding="5" CornerRadius="5">
+                                                <DockPanel>
+                                                    <!-- 삭제 버튼 -->
+                                                    <Button Content="❌" Width="24" Height="24" Margin="5,0,0,0"
+                            DockPanel.Dock="Right"
+                            Command="{Binding DataContext.DeleteTaskCommand, RelativeSource={RelativeSource AncestorType=Window}}"
+                            CommandParameter="{Binding}" />
 
-                                                </StackPanel>
+                                                    <!-- 텍스트 내용 -->
+                                                    <StackPanel Orientation="Vertical">
+                                                        <TextBlock Text="{Binding Name}" FontWeight="Bold" Foreground="White"/>
+                                                        <TextBlock Foreground="White" FontSize="12">
+                            <Run Text="시작일: "/>
+                            <Run Text="{Binding StartDDay, Mode=OneWay}" FontWeight="Bold"/>
+                            <Run Text="   마감일: "/>
+                            <Run Text="{Binding EndDDay, Mode=OneWay}" FontWeight="Bold"/>
+                                                        </TextBlock>
+                                                    </StackPanel>
+                                                </DockPanel>
                                             </Border>
                                         </DataTemplate>
                                     </ListBox.ItemTemplate>

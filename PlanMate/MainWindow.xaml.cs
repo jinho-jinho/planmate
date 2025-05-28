@@ -23,6 +23,7 @@ namespace PlanMate;
 public partial class MainWindow : Window
 {
     private ObservableCollection<TaskItem> taskList = new();
+    public ICommand DeleteTaskCommand { get; }
     private readonly string savePath = Path.Combine(
         Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "PlanMate", "tasks.json");
     string memoPath = Path.Combine(
@@ -34,15 +35,31 @@ public partial class MainWindow : Window
     public MainWindow()
     {
         InitializeComponent();
-        DataContext = new MainViewModel();
+
+        DeleteTaskCommand = new RelayCommand(DeleteTask);
+
+        this.DataContext = this; // ViewModel 대신 MainWindow 자체를 DataContext로
+
         LoadTasks();
         DailyTaskList.ItemsSource = taskList;
-        if (File.Exists(memoPath))
-        {
-            MemoBox.Text = File.ReadAllText(memoPath);
-        }
-        GenerateCalendar();
 
+        if (File.Exists(memoPath))
+            MemoBox.Text = File.ReadAllText(memoPath);
+
+        GenerateCalendar();
+    }
+
+    private void DeleteTask(object obj)
+    {
+        if (obj is TaskItem task)
+        {
+            if (MessageBox.Show($"{task.Name} 일정을 삭제하시겠습니까?", "확인", MessageBoxButton.YesNo) == MessageBoxResult.Yes)
+            {
+                taskList.Remove(task);
+                SaveTasks(); // JsonStorageService.SaveTasks(taskList);
+                RefreshTaskList(); // 화면 반영
+            }
+        }
     }
 
     private void OpenMonthPickerButton_Click(object sender, RoutedEventArgs e)
