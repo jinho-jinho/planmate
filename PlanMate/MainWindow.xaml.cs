@@ -35,20 +35,17 @@ public partial class MainWindow : Window
     public MainWindow()
     {
         InitializeComponent();
-
         DeleteTaskCommand = new RelayCommand(DeleteTask);
-
-        this.DataContext = this; // ViewModel 대신 MainWindow 자체를 DataContext로
-
+        DataContext = this;
         LoadTasks();
         DailyTaskList.ItemsSource = taskList;
-
         if (File.Exists(memoPath))
+        {
             MemoBox.Text = File.ReadAllText(memoPath);
-
+        }
         GenerateCalendar();
-    }
 
+    }
     private void DeleteTask(object obj)
     {
         if (obj is TaskItem task)
@@ -183,8 +180,9 @@ public partial class MainWindow : Window
                             t.StartDate.Date <= currentDate &&
                             t.EndDate.Date >= currentDate).ToList();
 
-                        var dayWindow = new DayTaskWindow(currentDate, tasks);
+                        var dayWindow = new DayTaskWindow(currentDate, tasks, taskList);
                         dayWindow.Show();
+
                     }
                 };
 
