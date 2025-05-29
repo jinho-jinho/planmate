@@ -2,6 +2,7 @@
 using PlanMate.ViewModels;
 using PlanMate.Views;
 using System.Collections.ObjectModel;
+using System.Globalization;
 using System.IO;
 using System.Text;
 using System.Text.Json;
@@ -23,6 +24,7 @@ namespace PlanMate;
 public partial class MainWindow : Window
 {
     private ObservableCollection<TaskItem> taskList = new();
+    public string CurrentDate => DateTime.Now.ToString("yyyy년 M월 d일 (ddd)", new CultureInfo("ko-KR"));
     public ICommand DeleteTaskCommand { get; }
     private readonly string savePath = Path.Combine(
         Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "PlanMate", "tasks.json");
@@ -55,6 +57,7 @@ public partial class MainWindow : Window
                 taskList.Remove(task);
                 SaveTasks(); // JsonStorageService.SaveTasks(taskList);
                 RefreshTaskList(); // 화면 반영
+                GenerateCalendar();
             }
         }
     }
@@ -133,7 +136,7 @@ public partial class MainWindow : Window
                     t.StartDate.Date <= currentDate.Date &&
                     t.EndDate.Date >= currentDate.Date).ToList();
 
-                foreach (var task in tasksOnDate.Take(2))
+                foreach (var task in tasksOnDate.Take(5))
                 {
                     var taskText = new Border
                     {
@@ -177,11 +180,12 @@ public partial class MainWindow : Window
                     if (e.ClickCount == 2)
                     {
                         var tasks = taskList.Where(t =>
-                            t.StartDate.Date <= currentDate &&
-                            t.EndDate.Date >= currentDate).ToList();
+    t.StartDate.Date <= currentDate &&
+    t.EndDate.Date >= currentDate).ToList();
 
-                        var dayWindow = new DayTaskWindow(currentDate, tasks, taskList);
+                        var dayWindow = new DayTaskWindow(currentDate, taskList, RefreshTaskList, GenerateCalendar);
                         dayWindow.Show();
+
 
                     }
                 };
@@ -275,6 +279,7 @@ public partial class MainWindow : Window
                 // 변경사항은 이미 바인딩된 TaskItem에 반영됨
                 RefreshTaskList();
                 SaveTasks();
+                GenerateCalendar();
             }
 
             DailyTaskList.SelectedItem = null; // 다시 클릭 가능하도록 선택 해제

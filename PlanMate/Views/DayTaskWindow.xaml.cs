@@ -17,10 +17,15 @@ namespace PlanMate.Views
         private List<TaskItem> originalTasks;
         private ObservableCollection<TaskItem> sharedTaskList;
         public ICommand DeleteTaskCommand { get; }
+        private DateTime SelectedDate;
+        private Action refreshCallback;
+        private Action calendarCallback;
 
-        public DayTaskWindow(DateTime date, List<TaskItem> tasks, ObservableCollection<TaskItem> sharedTasks)
+        public DayTaskWindow(DateTime date, ObservableCollection<TaskItem> tasks,
+                             Action refreshAction, Action calendarAction)
         {
             InitializeComponent();
+
             DeleteTaskCommand = new RelayCommand(obj =>
             {
                 if (obj is TaskItem task)
@@ -28,20 +33,35 @@ namespace PlanMate.Views
             });
 
             DataContext = this;
-            originalTasks = tasks;
-            sharedTaskList = sharedTasks;
+
+            sharedTaskList = tasks;
+            refreshCallback = refreshAction;
+            calendarCallback = calendarAction;
+
+            SelectedDate = date;
             DateTitle.Text = date.ToString("yyyy년 M월 d일 (ddd)", new CultureInfo("ko-KR"));
-            DayTaskListBox.ItemsSource = tasks;
+
+            var dayTasks = tasks.Where(t => t.StartDate.Date <= date && t.EndDate.Date >= date).ToList();
+            DayTaskListBox.ItemsSource = dayTasks;
+            originalTasks = new List<TaskItem>(dayTasks);
         }
 
         private void DeleteTask(TaskItem task)
         {
             if (MessageBox.Show($"{task.Name} 일정을 삭제하시겠습니까?", "삭제 확인", MessageBoxButton.YesNo) == MessageBoxResult.Yes)
             {
-                originalTasks.Remove(task);
                 sharedTaskList.Remove(task);
                 SaveTasks();
-                RefreshList();
+                refreshCallback?.Invoke();
+                calendarCallback?.Invoke();
+
+                var dayTasks = sharedTaskList
+                    .Where(t => t.StartDate.Date <= SelectedDate && t.EndDate.Date >= SelectedDate)
+                    .ToList();
+
+                DayTaskListBox.ItemsSource = null;
+                DayTaskListBox.ItemsSource = dayTasks;
+                originalTasks = new List<TaskItem>(dayTasks);
             }
         }
 
@@ -72,52 +92,38 @@ namespace PlanMate.Views
         {
             if (DayTaskListBox.SelectedItem is TaskItem selectedTask)
             {
-                var editWindow = new AddTaskWindow(selectedTask);  // 기존 Task 전달
+                var editWindow = new AddTaskWindow(selectedTask);
                 if (editWindow.ShowDialog() == true)
                 {
                     RefreshList();
                     SaveTasks();
                 }
 
-                DayTaskListBox.SelectedItem = null; // 다시 클릭 가능하도록 해제
+                DayTaskListBox.SelectedItem = null;
             }
         }
 
         private void SortByImportanceThenEndDate_Click(object sender, RoutedEventArgs e)
         {
             var today = DateTime.Today;
-
-            var sorted = originalTasks.OrderBy(t =>
-                t.Importance == "상" ? 0 :
-                t.Importance == "중" ? 1 : 2
-            ).ThenBy(t => (t.EndDate - today).Days).ToList();
-
+            var sorted = originalTasks.OrderBy(t => t.Importance == "상" ? 0 : t.Importance == "중" ? 1 : 2)
+                                       .ThenBy(t => (t.EndDate - today).Days).ToList();
             UpdateDayList(sorted);
         }
 
         private void SortByStartDateThenImportance_Click(object sender, RoutedEventArgs e)
         {
             var today = DateTime.Today;
-
             var sorted = originalTasks.OrderBy(t => (t.StartDate - today).Days)
-                .ThenBy(t =>
-                    t.Importance == "상" ? 0 :
-                    t.Importance == "중" ? 1 : 2
-                ).ToList();
-
+                                       .ThenBy(t => t.Importance == "상" ? 0 : t.Importance == "중" ? 1 : 2).ToList();
             UpdateDayList(sorted);
         }
 
         private void SortByEndDateThenImportance_Click(object sender, RoutedEventArgs e)
         {
             var today = DateTime.Today;
-
             var sorted = originalTasks.OrderBy(t => (t.EndDate - today).Days)
-                .ThenBy(t =>
-                    t.Importance == "상" ? 0 :
-                    t.Importance == "중" ? 1 : 2
-                ).ToList();
-
+                                       .ThenBy(t => t.Importance == "상" ? 0 : t.Importance == "중" ? 1 : 2).ToList();
             UpdateDayList(sorted);
         }
 
