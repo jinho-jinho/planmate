@@ -3,7 +3,7 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:local="clr-namespace:PlanMate.Converters"
         Title="PlanMate" Height="800" Width="450"
-        WindowStyle="None" AllowsTransparency="True" Background="Transparent"
+        WindowStyle="None" AllowsTransparency="True" Background="#01FFFFFF"
         MouseDown="Window_MouseDown">
     <Window.Resources>
         <local:ImportanceToColorConverter x:Key="ImportanceToColorConverter"/>
@@ -27,7 +27,10 @@
                     <ColumnDefinition Width="Auto" />
                 </Grid.ColumnDefinitions>
 
-                <TextBlock Text="PlanMate" FontWeight="Bold" FontSize="14" Margin="10,0" VerticalAlignment="Center" Grid.Column="0"/>
+                <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Margin="10,0,0,0" Grid.Column="0">
+                    <Image Source="/Resources/planmate.png" Width="20" Height="20" Margin="0,0,5,0"/>
+                    <TextBlock Text="PlanMate" FontWeight="Bold" FontSize="14" VerticalAlignment="Center"/>
+                </StackPanel>
 
                 <StackPanel Orientation="Horizontal" Grid.Column="1" HorizontalAlignment="Right" Margin="0,5,5,5">
                     <Button Content="➖" Width="20" Height="20" Margin="1" Click="Minimize_Click"/>
@@ -55,26 +58,85 @@
                     <!-- 일간 -->
                     <TabItem Header="일간">
                         <Grid>
-                            <!-- 1. ListBox를 ScrollViewer로 감쌈 -->
                             <ScrollViewer VerticalScrollBarVisibility="Auto">
                                 <ListBox x:Name="DailyTaskList" SelectionChanged="DailyTaskList_SelectionChanged">
                                     <ListBox.ItemTemplate>
                                         <DataTemplate>
-                                            <Border Background="{Binding Importance, Converter={StaticResource ImportanceToColorConverter}}" Margin="5" Padding="5" CornerRadius="5">
-                                                <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
-                                                    <TextBlock Text="{Binding Name}" FontWeight="Bold" Foreground="White"/>
-                                                    <TextBlock Text="   "/>
-                                                    <TextBlock Text="{Binding DDay}" FontSize="12" Foreground="White"/>
-                                                </StackPanel>
+                                            <Border Background="{Binding Importance, Converter={StaticResource ImportanceToColorConverter}}"
+                    Margin="5" Padding="5" CornerRadius="5">
+                                                <DockPanel>
+                                                    <!-- 삭제 버튼 -->
+                                                    <Button Content="❌"
+        Width="20" Height="20"
+        Margin="2,2,13,2"  
+                                                        FontSize="12"
+        FontWeight="Bold"
+        Foreground="White"
+        Background="#E74C3C"
+        BorderBrush="Transparent"
+        Cursor="Hand"
+        DockPanel.Dock="Left"
+        Command="{Binding DataContext.DeleteTaskCommand, RelativeSource={RelativeSource AncestorType=Window}}"
+        CommandParameter="{Binding}">
+
+                                                        <Button.Style>
+                                                            <Style TargetType="Button">
+                                                                <Setter Property="Template">
+                                                                    <Setter.Value>
+                                                                        <ControlTemplate TargetType="Button">
+                                                                            <Border Background="{TemplateBinding Background}"
+                                CornerRadius="10"  
+                                                                                BorderBrush="{TemplateBinding BorderBrush}">
+                                                                                <ContentPresenter HorizontalAlignment="Center"
+                                              VerticalAlignment="Center"/>
+                                                                            </Border>
+                                                                        </ControlTemplate>
+                                                                    </Setter.Value>
+                                                                </Setter>
+                                                                <Setter Property="Background" Value="#E74C3C"/>
+                                                                <Setter Property="Foreground" Value="White"/>
+                                                                <Setter Property="Cursor" Value="Hand"/>
+                                                                <Setter Property="FontWeight" Value="Bold"/>
+                                                                <Style.Triggers>
+                                                                    <Trigger Property="IsMouseOver" Value="True">
+                                                                        <Setter Property="Background" Value="#C0392B"/>
+                                                                    </Trigger>
+                                                                    <Trigger Property="IsPressed" Value="True">
+                                                                        <Setter Property="Background" Value="#A93226"/>
+                                                                    </Trigger>
+                                                                </Style.Triggers>
+                                                            </Style>
+                                                        </Button.Style>
+                                                    </Button>
+
+
+
+                                                    <!-- 텍스트 내용 -->
+                                                    <StackPanel Orientation="Vertical">
+                                                        <TextBlock Text="{Binding Name}" 
+               FontWeight="Bold" 
+               Foreground="#1A1A2E"/>
+
+                                                        <TextBlock Foreground="Blue" FontSize="12">
+        <Run Text="시작일: "/>
+        <Run Text="{Binding StartDDay, Mode=OneWay}" FontWeight="Bold" Foreground="White"/>
+        <Run Text="   마감일: "/>
+        <Run Text="{Binding EndDDay, Mode=OneWay}" FontWeight="Bold" Foreground="White"/>
+                                                        </TextBlock>
+                                                    </StackPanel>
+
+                                                </DockPanel>
                                             </Border>
                                         </DataTemplate>
                                     </ListBox.ItemTemplate>
                                 </ListBox>
+
                             </ScrollViewer>
 
                             <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Bottom">
-                                <Button Content="중요도 → D-Day" Click="SortByImportanceThenDDay_Click" Margin="0,0,5,5"/>
-                                <Button Content="D-Day → 중요도" Click="SortByDDayThenImportance_Click" Margin="0,0,5,5"/>
+                                <Button Content="중요도 순" Click="SortByImportanceThenDDay_Click" Margin="0,0,5,5"/>
+                                <Button Content="시작일 순" Click="SortByStartDateThenImportance_Click" Margin="0,0,5,5"/>
+                                <Button Content="종료일 순" Click="SortByEndDateThenImportance_Click" Margin="0,0,5,5"/>
                             </StackPanel>
                         </Grid>
                     </TabItem>
@@ -82,22 +144,60 @@
 
                     <!-- 월간 -->
                     <TabItem Header="월간">
-                        <StackPanel>
-                            <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,10">
-                                <!--<Button Content="◀" Width="30" Click="OnPrevMonthClick"/>
-                                <TextBlock Text="{Binding CurrentMonthText}" 
-                                           FontSize="16" 
-                                           FontWeight="Bold" 
-                                           Margin="10,0" 
-                                           VerticalAlignment="Center"/> 
-                                <Button Content="▶" Width="30" Click="OnNextMonthClick"/>-->
-                            </StackPanel>
+                        <Grid>
+                            <!-- 월 타이틀 & 이전/다음 월 버튼 -->
+                            <Grid HorizontalAlignment="Stretch" Margin="0,10">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*" />
+                                    <!-- 좌측 여백 -->
+                                    <ColumnDefinition Width="Auto" />
+                                    <!-- 중앙 버튼 + 텍스트 -->
+                                    <ColumnDefinition Width="*" />
+                                    <!-- 우측 버튼 -->
+                                </Grid.ColumnDefinitions>
 
-                            <!-- 달력 영역 (구현 필요) -->
-                            <Border Height="570" Background="Black" Margin="10">
-                                <TextBlock Text="여기에 달력 표시" Foreground="White" VerticalAlignment="Center" HorizontalAlignment="Center"/>
-                            </Border>
-                        </StackPanel>
+                                <!-- 가운데: 이전/다음 버튼 + 월 텍스트 -->
+                                <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Grid.Column="1" VerticalAlignment="Top">
+                                    <Button Content="◀" Width="30" Click="OnPrevMonthClick"/>
+                                    <TextBlock x:Name="MonthTitle" FontSize="16" FontWeight="Bold" Margin="10,0"/>
+                                    <Button Content="▶" Width="30" Click="OnNextMonthClick"/>
+                                </StackPanel>
+
+                                <!-- 오른쪽: 달력 버튼 + 팝업 -->
+                                <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Grid.Column="2" VerticalAlignment="Top">
+                                    <Popup 
+            x:Name="MonthPopup"
+            PlacementTarget="{Binding ElementName=OpenMonthPickerButton}"
+            Placement="Bottom"
+            StaysOpen="False"
+            AllowsTransparency="True"
+            PopupAnimation="Fade">
+                                        <Border Background="White" BorderBrush="Gray" BorderThickness="1" Padding="5">
+                                            <Calendar
+                    x:Name="MonthCalendar"
+                    DisplayMode="Year"
+                    DisplayModeChanged="MonthCalendar_DisplayModeChanged"/>
+                                        </Border>
+                                    </Popup>
+                                    <Button x:Name="OpenMonthPickerButton" Content="📅" Width="30" Click="OpenMonthPickerButton_Click"/>
+                                </StackPanel>
+                            </Grid>
+
+
+                            <!-- 요일 헤더 -->
+                            <UniformGrid Rows="1" Columns="7" Margin="10,40,10,0">
+                                <TextBlock Text="일" TextAlignment="Center" Foreground="Red"/>
+                                <TextBlock Text="월" TextAlignment="Center"/>
+                                <TextBlock Text="화" TextAlignment="Center"/>
+                                <TextBlock Text="수" TextAlignment="Center"/>
+                                <TextBlock Text="목" TextAlignment="Center"/>
+                                <TextBlock Text="금" TextAlignment="Center"/>
+                                <TextBlock Text="토" TextAlignment="Center" Foreground="Blue"/>
+                            </UniformGrid>
+
+                            <!-- 달력 셀 -->
+                            <UniformGrid x:Name="CalendarGrid" Rows="6" Columns="7" Margin="10,70,10,10"/>
+                        </Grid>
                     </TabItem>
 
                     <!-- 시간표 -->

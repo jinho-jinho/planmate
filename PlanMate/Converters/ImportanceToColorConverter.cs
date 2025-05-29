@@ -11,7 +11,7 @@ namespace PlanMate.Converters
         {
             return value switch
             {
-                "상" => Brushes.Red,
+                "상" => Brushes.IndianRed,
                 "중" => Brushes.Orange,
                 "하" => Brushes.LightGreen,
                 _ => Brushes.Gray
