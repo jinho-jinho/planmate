@@ -35,23 +35,44 @@ public partial class MainWindow : Window
     private DateTime currentMonth = DateTime.Today;
     private Border? selectedBorder = null;
     private DateTime selectedDate = DateTime.Today; // 🔹 기본 선택: 오늘
+    private MainViewModel viewModel;
 
     public MainWindow()
     {
         InitializeComponent();
+
+        // ViewModel 생성 및 바인딩
+        viewModel = new MainViewModel();
+        DataContext = this; // MainWindow가 DataContext, 내부에서 ViewModel 노출
+
         DeleteTaskCommand = new RelayCommand(DeleteTask);
-        DataContext = this;
-        LoadTasks();
+
+        LoadTasks(); // taskList ← 로컬 ObservableCollection<TaskItem>
         DailyTaskList.ItemsSource = taskList;
+
         if (File.Exists(memoPath))
         {
             MemoBox.Text = File.ReadAllText(memoPath);
         }
+
         GenerateCalendar();
 
-        // 윈도우 로드 완료 시점에 DrawLines() 메서드를 자동으로 실행
+        // 시간표 예시 추가
+        viewModel.ScheduleItems.Add(new ScheduleItem
+        {
+            Title = "테스트 일정",
+            Day = DayOfWeek.Tuesday,
+            StartTime = TimeSpan.FromHours(9),
+            EndTime = TimeSpan.FromHours(11)
+        });
+
         Loaded += (s, e) => DrawLines();
     }
+
+    // ViewModel 접근용 프로퍼티
+    public MainViewModel ViewModel => viewModel;
+
+
     private void DeleteTask(object obj)
     {
         if (obj is TaskItem task)

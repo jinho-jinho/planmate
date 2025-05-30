@@ -7,10 +7,6 @@
         WindowStyle="None" AllowsTransparency="True" Background="Transparent"
         MouseDown="Window_MouseDown">
 
-    <Window.DataContext>
-        <vm:MainViewModel/>
-    </Window.DataContext>
-
     <Window.Resources>
         <local:ImportanceToColorConverter x:Key="ImportanceToColorConverter"/>
         <local:DayToXConverter x:Key="DayToXConverter" ColumnWidth="50"/>
@@ -114,9 +110,9 @@
                                                         <TextBlock Text="{Binding Name}" FontWeight="Bold" Foreground="#1A1A2E"/>
                                                         <TextBlock Foreground="Blue" FontSize="12">
                                                             <Run Text="시작일: "/>
-                                                            <Run Text="{Binding StartDDay}" FontWeight="Bold" Foreground="White"/>
+                                                            <Run Text="{Binding StartDDay, Mode=OneWay}" FontWeight="Bold" Foreground="White"/>
                                                             <Run Text="   마감일: "/>
-                                                            <Run Text="{Binding EndDDay}" FontWeight="Bold" Foreground="White"/>
+                                                            <Run Text="{Binding EndDDay, Mode=OneWay}" FontWeight="Bold" Foreground="White"/>
                                                         </TextBlock>
                                                     </StackPanel>
                                                 </DockPanel>
@@ -210,7 +206,7 @@
                             </ScrollViewer>
 
                             <ScrollViewer x:Name="TimeScrollViewer" Grid.Row="1" Grid.Column="0" HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Hidden">
-                                <ItemsControl ItemsSource="{Binding TimeLabels}">
+                                <ItemsControl ItemsSource="{Binding ViewModel.TimeLabels}">
                                     <ItemsControl.ItemTemplate>
                                         <DataTemplate>
                                             <TextBlock Text="{Binding}" Height="60" VerticalAlignment="Top" FontSize="10" HorizontalAlignment="Right" Margin="0,0,2,0"/>
@@ -224,7 +220,7 @@
                                           ScrollChanged="ScheduleScrollViewer_ScrollChanged">
                                 <Grid Width="350" Height="1440">
                                     <Canvas x:Name="ScheduleCanvas" Width="350" Height="1440"/>
-                                    <ItemsControl ItemsSource="{Binding ScheduleItems}">
+                                    <ItemsControl ItemsSource="{Binding ViewModel.ScheduleItems}">
                                         <ItemsControl.ItemsPanel>
                                             <ItemsPanelTemplate>
                                                 <Canvas Width="350" Height="1440"/>
