@@ -2,11 +2,18 @@
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:local="clr-namespace:PlanMate.Converters"
+        xmlns:vm="clr-namespace:PlanMate.ViewModels"
         Title="PlanMate" Height="800" Width="450"
         WindowStyle="None" AllowsTransparency="True" Background="Transparent"
         MouseDown="Window_MouseDown">
+
+    <Window.DataContext>
+        <vm:MainViewModel/>
+    </Window.DataContext>
+
     <Window.Resources>
         <local:ImportanceToColorConverter x:Key="ImportanceToColorConverter"/>
+        <local:DayToXConverter x:Key="DayToXConverter" ColumnWidth="50"/>
     </Window.Resources>
 
     <Border Background="White" CornerRadius="10">
@@ -95,10 +102,92 @@
                     <!-- 시간표 -->
                     <TabItem Header="시간표">
                         <Grid>
-                            <!-- 시간표 영역 (그리드 또는 캘린더 스타일 구현) -->
-                            <Border Background="Black" Margin="10">
-                                <TextBlock Text="시간표 영역" Foreground="White" VerticalAlignment="Center" HorizontalAlignment="Center"/>
-                            </Border>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="30"/>    <!-- 요일 헤더 -->
+                                <RowDefinition/>
+                            </Grid.RowDefinitions>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="40"/>  <!-- 시간축 -->
+                                <ColumnDefinition/>
+                            </Grid.ColumnDefinitions>
+
+                            <!-- 빈 모서리 -->
+                            <Border Grid.Row="0" Grid.Column="0" Background="Transparent"/>
+
+                            <!-- 요일 헤더 -->
+                            <ScrollViewer x:Name="HeaderScrollViewer"
+                                          Grid.Row="0" Grid.Column="1"
+                                          HorizontalScrollBarVisibility="Hidden"
+                                          VerticalScrollBarVisibility="Disabled">
+                                <UniformGrid Columns="7" Width="350">
+                                    <TextBlock Text="일요일" HorizontalAlignment="Left"/>
+                                    <TextBlock Text="월요일" HorizontalAlignment="Left"/>
+                                    <TextBlock Text="화요일" HorizontalAlignment="Left"/>
+                                    <TextBlock Text="수요일" HorizontalAlignment="Left"/>
+                                    <TextBlock Text="목요일" HorizontalAlignment="Left"/>
+                                    <TextBlock Text="금요일" HorizontalAlignment="Left"/>
+                                    <TextBlock Text="토요일" HorizontalAlignment="Left"/>
+                                </UniformGrid>
+                            </ScrollViewer>
+
+                            <!-- 시간축 레이블 -->
+                            <ScrollViewer x:Name="TimeScrollViewer"
+                                          Grid.Row="1" Grid.Column="0"
+                                          HorizontalScrollBarVisibility="Disabled"
+                                          VerticalScrollBarVisibility="Hidden">
+                                <ItemsControl ItemsSource="{Binding TimeLabels}">
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate>
+                                            <TextBlock Text="{Binding}"
+                                                       Height="60"
+                                                       VerticalAlignment="Top"
+                                                       FontSize="10"
+                                                       HorizontalAlignment="Right"
+                                                       Margin="0,0,2,0"/>
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+                            </ScrollViewer>
+
+                            <!-- 일정 캔버스 -->
+                            <ScrollViewer x:Name="ScheduleScrollViewer"
+                                          Grid.Row="1" Grid.Column="1"
+                                          HorizontalScrollBarVisibility="Disabled"
+                                          VerticalScrollBarVisibility="Auto"
+                                          ScrollChanged="ScheduleScrollViewer_ScrollChanged">
+                                <Grid Width="350" Height="1440">
+                                    <Canvas x:Name="ScheduleCanvas" Width="350" Height="1440"/>
+
+                                    <ItemsControl ItemsSource="{Binding ScheduleItems}">
+                                        <ItemsControl.ItemsPanel>
+                                            <ItemsPanelTemplate>
+                                                <Canvas Width="350" Height="1440"/>
+                                            </ItemsPanelTemplate>
+                                        </ItemsControl.ItemsPanel>
+
+                                        <ItemsControl.ItemContainerStyle>
+                                            <Style TargetType="ContentPresenter">
+                                                <Setter Property="Canvas.Left" Value="{Binding Day, Converter={StaticResource DayToXConverter}}"/>
+                                                <Setter Property="Canvas.Top" Value="{Binding Top}"/>
+                                            </Style>
+                                        </ItemsControl.ItemContainerStyle>
+
+                                        <ItemsControl.ItemTemplate>
+                                            <DataTemplate>
+                                                <Border Background="LightSkyBlue"
+                                                        CornerRadius="3"
+                                                        Width="50"
+                                                        Height="{Binding Height}">
+                                                    <TextBlock Text="{Binding Title}"
+                                                               TextWrapping="Wrap"
+                                                               FontSize="9"
+                                                               Margin="2"/>
+                                                </Border>
+                                            </DataTemplate>
+                                        </ItemsControl.ItemTemplate>
+                                    </ItemsControl>
+                                </Grid>
+                            </ScrollViewer>
                         </Grid>
                     </TabItem>
 

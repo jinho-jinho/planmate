@@ -13,6 +13,8 @@ using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
+using System.Windows.Shapes;
+using Path = System.IO.Path;
 
 namespace PlanMate;
 
@@ -37,6 +39,8 @@ public partial class MainWindow : Window
             MemoBox.Text = File.ReadAllText(memoPath);
         }
 
+        // 윈도우 로드 완료 시점에 DrawLines() 메서드를 자동으로 실행
+        Loaded += (s, e) => DrawLines();
     }
 
     private void AddTaskButton_Click(object sender, RoutedEventArgs e)
@@ -125,5 +129,57 @@ public partial class MainWindow : Window
     private void Minimize_Click(object sender, RoutedEventArgs e)
     {
         this.WindowState = WindowState.Minimized;
+    }
+
+    // 요일, 시간마다 구분선 그리기
+    private void DrawLines()
+    {
+        double canvasWidth = ScheduleCanvas.Width;   // 7일 * 50px = 350
+        double canvasHeight = ScheduleCanvas.Height;  // 24h * 60px = 1440
+        double hourHeight = 60.0;  // 1시간 = 60px
+        double columnWidth = 50.0;  // 1일  = 50px
+
+        // 시간마다 가로선
+        for (int hour = 1; hour < 24; hour++)
+        {
+            double y = hour * hourHeight;
+            var hLine = new Line
+            {
+                X1 = 0,
+                Y1 = y,
+                X2 = canvasWidth,
+                Y2 = y,
+                Stroke = Brushes.LightGray,
+                StrokeThickness = 1
+            };
+            // 일정 아이템들보다 뒤에 배치
+            ScheduleCanvas.Children.Insert(0, hLine);
+        }
+
+        // 요일마다 세로선
+        for (int day = 1; day < 7; day++)
+        {
+            double x = day * columnWidth;
+            var vLine = new Line
+            {
+                X1 = x,
+                Y1 = 0,
+                X2 = x,
+                Y2 = canvasHeight,
+                Stroke = Brushes.LightGray,
+                StrokeThickness = 1
+            };
+            ScheduleCanvas.Children.Insert(0, vLine);
+        }
+    }
+
+    // 시간표 스크롤 동기화
+    private void ScheduleScrollViewer_ScrollChanged(object sender, ScrollChangedEventArgs e)
+    {
+        // 수직 스크롤: 시간축에 동기화
+        TimeScrollViewer.ScrollToVerticalOffset(e.VerticalOffset);
+
+        // 수평 스크롤: 요일 헤더에 동기화
+        HeaderScrollViewer.ScrollToHorizontalOffset(e.HorizontalOffset);
     }
 }
