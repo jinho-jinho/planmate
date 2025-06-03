@@ -8,6 +8,7 @@
         MouseDown="Window_MouseDown">
 
     <Window.Resources>
+        <local:BoolToVisibilityConverter x:Key="BoolToVisibilityConverter"/>
         <local:ImportanceToColorConverter x:Key="ImportanceToColorConverter"/>
         <local:DayToXConverter x:Key="DayToXConverter" ColumnWidth="50"/>
     </Window.Resources>
@@ -178,7 +179,7 @@
                         </Grid>
                     </TabItem>
 
-                    <!-- 시간표 -->
+                    <!-- 3) 시간표 탭 -->
                     <TabItem Header="시간표">
                         <!-- gijin 기준의 ScheduleCanvas + 시간축 구조 유지 -->
                         <!-- 생략 가능: 이미 잘 정리된 버전 있으면 복사 가능 -->
@@ -193,34 +194,53 @@
                             </Grid.ColumnDefinitions>
 
                             <Border Grid.Row="0" Grid.Column="0" Background="Transparent"/>
-                            <ScrollViewer x:Name="HeaderScrollViewer" Grid.Row="0" Grid.Column="1" HorizontalScrollBarVisibility="Hidden" VerticalScrollBarVisibility="Disabled">
+
+                            <ScrollViewer x:Name="HeaderScrollViewer"
+                                          Grid.Row="0" Grid.Column="1"
+                                          HorizontalScrollBarVisibility="Hidden"
+                                          VerticalScrollBarVisibility="Disabled">
                                 <UniformGrid Columns="7" Width="350">
-                                    <TextBlock Text="일요일" HorizontalAlignment="Left"/>
-                                    <TextBlock Text="월요일" HorizontalAlignment="Left"/>
-                                    <TextBlock Text="화요일" HorizontalAlignment="Left"/>
-                                    <TextBlock Text="수요일" HorizontalAlignment="Left"/>
-                                    <TextBlock Text="목요일" HorizontalAlignment="Left"/>
-                                    <TextBlock Text="금요일" HorizontalAlignment="Left"/>
-                                    <TextBlock Text="토요일" HorizontalAlignment="Left"/>
+                                    <TextBlock Text="일요일" HorizontalAlignment="Center"/>
+                                    <TextBlock Text="월요일" HorizontalAlignment="Center"/>
+                                    <TextBlock Text="화요일" HorizontalAlignment="Center"/>
+                                    <TextBlock Text="수요일" HorizontalAlignment="Center"/>
+                                    <TextBlock Text="목요일" HorizontalAlignment="Center"/>
+                                    <TextBlock Text="금요일" HorizontalAlignment="Center"/>
+                                    <TextBlock Text="토요일" HorizontalAlignment="Center"/>
                                 </UniformGrid>
                             </ScrollViewer>
 
-                            <ScrollViewer x:Name="TimeScrollViewer" Grid.Row="1" Grid.Column="0" HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Hidden">
-                                <ItemsControl ItemsSource="{Binding ViewModel.TimeLabels}">
+                            <ScrollViewer x:Name="TimeScrollViewer"
+                                          Grid.Row="1" Grid.Column="0"
+                                          HorizontalScrollBarVisibility="Disabled"
+                                          VerticalScrollBarVisibility="Hidden">
+                                <ItemsControl ItemsSource="{Binding TimeLabels}">
                                     <ItemsControl.ItemTemplate>
                                         <DataTemplate>
-                                            <TextBlock Text="{Binding}" Height="60" VerticalAlignment="Top" FontSize="10" HorizontalAlignment="Right" Margin="0,0,2,0"/>
+                                            <TextBlock Text="{Binding}"
+                                                       Height="60" 
+                                                       VerticalAlignment="Top"
+                                                       FontSize="10"
+                                                       HorizontalAlignment="Right"
+                                                       Margin="0,0,2,0"/>
                                         </DataTemplate>
                                     </ItemsControl.ItemTemplate>
                                 </ItemsControl>
                             </ScrollViewer>
 
-                            <ScrollViewer x:Name="ScheduleScrollViewer" Grid.Row="1" Grid.Column="1"
-                                          HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto"
-                                          ScrollChanged="ScheduleScrollViewer_ScrollChanged">
+                            <ScrollViewer x:Name="ScheduleScrollViewer"
+                                          Grid.Row="1" Grid.Column="1"
+                                          HorizontalScrollBarVisibility="Disabled"
+                                          VerticalScrollBarVisibility="Auto"
+                                          ScrollChanged="ScheduleScrollViewer_ScrollChanged"
+                                          PreviewMouseLeftButtonDown="ScheduleScrollViewer_PreviewMouseLeftButtonDown"
+                                          PreviewMouseLeftButtonUp="ScheduleScrollViewer_PreviewMouseLeftButtonUp"
+                                          MouseMove="ScheduleScrollViewer_MouseMove">
                                 <Grid Width="350" Height="1440">
-                                    <Canvas x:Name="ScheduleCanvas" Width="350" Height="1440"/>
-                                    <ItemsControl ItemsSource="{Binding ViewModel.ScheduleItems}">
+                                    <Canvas x:Name="ScheduleCanvas"
+                                        Width="350" Height="1440"/>
+
+                                    <ItemsControl ItemsSource="{Binding ScheduleItems}">
                                         <ItemsControl.ItemsPanel>
                                             <ItemsPanelTemplate>
                                                 <Canvas Width="350" Height="1440"/>
@@ -228,14 +248,25 @@
                                         </ItemsControl.ItemsPanel>
                                         <ItemsControl.ItemContainerStyle>
                                             <Style TargetType="ContentPresenter">
-                                                <Setter Property="Canvas.Left" Value="{Binding Day, Converter={StaticResource DayToXConverter}}"/>
-                                                <Setter Property="Canvas.Top" Value="{Binding Top}"/>
+                                                <Setter Property="Canvas.Left"
+                                                        Value="{Binding Day, Converter={StaticResource DayToXConverter}}"/>
+                                                <Setter Property="Canvas.Top"
+                                                        Value="{Binding Top}"/>
                                             </Style>
                                         </ItemsControl.ItemContainerStyle>
                                         <ItemsControl.ItemTemplate>
                                             <DataTemplate>
-                                                <Border Background="LightSkyBlue" CornerRadius="3" Width="50" Height="{Binding Height}">
-                                                    <TextBlock Text="{Binding Title}" TextWrapping="Wrap" FontSize="9" Margin="2"/>
+                                                <Border x:Name="ScheduleBlock"
+                                                        Background="LightSkyBlue"
+                                                        CornerRadius="3"
+                                                        Width="50"
+                                                        Height="{Binding Height}"
+                                                        MouseLeftButtonDown="ScheduleBlock_MouseLeftButtonDown"
+                                                        ToolTip="{Binding Title}">
+                                                    <TextBlock Text="{Binding Title}"
+                                                               TextWrapping="Wrap"
+                                                               FontSize="9"
+                                                               Margin="2"/>
                                                 </Border>
                                             </DataTemplate>
                                         </ItemsControl.ItemTemplate>

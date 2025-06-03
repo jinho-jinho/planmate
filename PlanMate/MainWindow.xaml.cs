@@ -19,7 +19,7 @@ using System.Windows.Shapes;
 using Path = System.IO.Path;
 
 namespace PlanMate;
-
+    
 /// <summary>
 /// Interaction logic for MainWindow.xaml
 /// </summary>
@@ -32,10 +32,17 @@ public partial class MainWindow : Window
         Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "PlanMate", "tasks.json");
     string memoPath = Path.Combine(
         Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "PlanMate", "memo.json");
+    private readonly string scheduleSavePath = Path.Combine(
+        Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "PlanMate", "schedules.json");
     private DateTime currentMonth = DateTime.Today;
     private Border? selectedBorder = null;
     private DateTime selectedDate = DateTime.Today; // 🔹 기본 선택: 오늘
     private MainViewModel viewModel;
+
+    // 시간표 드래그용 필드
+    private Point _dragStartPoint;
+    private bool _isDragging;
+    private Rectangle _newRectPreview;
 
     public MainWindow()
     {
@@ -43,7 +50,7 @@ public partial class MainWindow : Window
 
         // ViewModel 생성 및 바인딩
         viewModel = new MainViewModel();
-        DataContext = this; // MainWindow가 DataContext, 내부에서 ViewModel 노출
+        DataContext = viewModel; // MainWindow가 DataContext, 내부에서 ViewModel 노출
 
         DeleteTaskCommand = new RelayCommand(DeleteTask);
 
@@ -57,14 +64,7 @@ public partial class MainWindow : Window
 
         GenerateCalendar();
 
-        // 시간표 예시 추가
-        viewModel.ScheduleItems.Add(new ScheduleItem
-        {
-            Title = "테스트 일정",
-            Day = DayOfWeek.Tuesday,
-            StartTime = TimeSpan.FromHours(9),
-            EndTime = TimeSpan.FromHours(11)
-        });
+        LoadSchedules();
 
         Loaded += (s, e) => DrawLines();
     }
@@ -72,7 +72,40 @@ public partial class MainWindow : Window
     // ViewModel 접근용 프로퍼티
     public MainViewModel ViewModel => viewModel;
 
+    private void AddTaskButton_Click(object sender, RoutedEventArgs e)
+    {
+        int tabIndex = MainTab.SelectedIndex; // 0: 일간, 1: 월간, 2: 시간표, 3: 메모
 
+        if (tabIndex == 0 || tabIndex == 1) // 일간, 월간
+        {
+            var addWindow = new AddTaskWindow();
+            if (addWindow.ShowDialog() == true)
+            {
+                taskList.Add(addWindow.CreatedTask);
+                RefreshTaskList();
+                SaveTasks();
+                GenerateCalendar(); // 월간 캘린더 갱신
+            }
+        }
+        else if (tabIndex == 2) // 시간표
+        {
+            var dlgVm = new ScheduleDialogViewModel(timeLabels: viewModel.TimeLabels);
+            var dlg = new ScheduleDialog(dlgVm) { Owner = this };
+
+            bool? result = dlg.ShowDialog();
+            if (result == true && dlgVm.NewItem != null)
+            {
+                viewModel.ScheduleItems.Add(dlgVm.NewItem);
+                SaveSchedules();
+            }
+        }
+        else if (tabIndex == 3) // 메모
+        {
+
+        }
+    }
+
+    #region 일간, 월간 관련 코드
     private void DeleteTask(object obj)
     {
         if (obj is TaskItem task)
@@ -236,33 +269,6 @@ public partial class MainWindow : Window
         GenerateCalendar();
     }
 
-
-    private void AddTaskButton_Click(object sender, RoutedEventArgs e)
-    {
-        int tabIndex = MainTab.SelectedIndex; // 0: 일간, 1: 월간, 2: 시간표, 3: 메모
-
-        if (tabIndex == 0 || tabIndex == 1) // 일간, 월간
-        {
-            var addWindow = new AddTaskWindow();
-            if (addWindow.ShowDialog() == true)
-            {
-                taskList.Add(addWindow.CreatedTask);
-                RefreshTaskList();
-                SaveTasks();
-                GenerateCalendar(); // 월간 캘린더 갱신
-            }
-        }
-        else if(tabIndex == 2) // 시간표
-        {
-            
-        }
-        else if (tabIndex == 3) // 메모
-        {
-            
-        }
-    }
-
-
     private void LoadTasks()
     {
         try
@@ -395,6 +401,10 @@ public partial class MainWindow : Window
         this.WindowState = WindowState.Minimized;
     }
 
+    #endregion
+
+
+    #region 시간표 관련 코드
     // 요일, 시간마다 구분선 그리기
     private void DrawLines()
     {
@@ -446,4 +456,158 @@ public partial class MainWindow : Window
         // 수평 스크롤: 요일 헤더에 동기화
         HeaderScrollViewer.ScrollToHorizontalOffset(e.HorizontalOffset);
     }
+
+    // 드래그 시작 (일정 추가용)
+    private void ScheduleScrollViewer_PreviewMouseLeftButtonDown(object sender, MouseButtonEventArgs e)
+    {
+        var canvasPos = e.GetPosition(ScheduleCanvas);
+        if (canvasPos.X < 0 || canvasPos.Y < 0 ||
+            canvasPos.X > ScheduleCanvas.Width || canvasPos.Y > ScheduleCanvas.Height)
+            return;
+
+        _dragStartPoint = canvasPos;
+        _isDragging = true;
+
+        _newRectPreview = new Rectangle
+        {
+            Stroke = Brushes.Gray,
+            StrokeDashArray = new DoubleCollection { 3, 3 },
+            Fill = new SolidColorBrush(Color.FromArgb(50, 135, 206, 250)),
+            Width = 50, // 요일 너비 50px
+            Height = 0
+        };
+        int dayIndex = (int)(canvasPos.X / 50);
+        Canvas.SetLeft(_newRectPreview, dayIndex * 50);
+        Canvas.SetTop(_newRectPreview, _dragStartPoint.Y);
+        ScheduleCanvas.Children.Add(_newRectPreview);
+    }
+
+    // 드래그 중 실시간 미리보기
+    private void ScheduleScrollViewer_MouseMove(object sender, MouseEventArgs e)
+    {
+        if (!_isDragging || _newRectPreview == null) return;
+
+        var currentPos = e.GetPosition(ScheduleCanvas);
+        double top = Math.Min(_dragStartPoint.Y, currentPos.Y);
+        double height = Math.Abs(currentPos.Y - _dragStartPoint.Y);
+
+        Canvas.SetTop(_newRectPreview, top);
+        _newRectPreview.Height = height;
+    }
+
+    // 드래그 완료 → 일정 추가 다이얼로그 열기
+    private void ScheduleScrollViewer_PreviewMouseLeftButtonUp(object sender, MouseButtonEventArgs e)
+    {
+        if (!_isDragging || _newRectPreview == null) return;
+        _isDragging = false;
+
+        try
+        {
+            var endPoint = e.GetPosition(ScheduleCanvas);
+            int dayIndex = (int)(_dragStartPoint.X / 50);
+            if (dayIndex < 0) dayIndex = 0;
+            if (dayIndex > 6) dayIndex = 6;
+
+            double y1 = Math.Min(_dragStartPoint.Y, endPoint.Y);
+            double y2 = Math.Max(_dragStartPoint.Y, endPoint.Y);
+
+            var st = TimeSpan.FromMinutes(y1);
+            var et = TimeSpan.FromMinutes(y2);
+
+            var dlgVm = new ScheduleDialogViewModel(existingItem: null, timeLabels: viewModel.TimeLabels);
+            dlgVm.Day = (DayOfWeek)dayIndex;
+            dlgVm.StartTimeString = $"{st.Hours:00}:{st.Minutes:00}";
+            dlgVm.EndTimeString = $"{et.Hours:00}:{et.Minutes:00}";
+
+            var dlg = new ScheduleDialog(dlgVm) { Owner = this };
+            bool? result = dlg.ShowDialog();
+            if (result == true && dlgVm.NewItem != null)
+            {
+                viewModel.ScheduleItems.Add(dlgVm.NewItem);
+            }
+        }
+        finally
+        {
+            if (_newRectPreview != null)
+            {
+                ScheduleCanvas.Children.Remove(_newRectPreview);
+                _newRectPreview = null;
+            }
+        }
+    }
+
+    // 블록 클릭 → 편집/삭제 다이얼로그
+    private void ScheduleBlock_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
+    {
+        if (_newRectPreview != null)
+        {
+            ScheduleCanvas.Children.Remove(_newRectPreview);
+            _newRectPreview = null;
+            _isDragging = false;
+        }
+
+        if (!(sender is FrameworkElement fe) || !(fe.DataContext is ScheduleItem item))
+            return;
+
+        var dlgVm = new ScheduleDialogViewModel(item, viewModel.TimeLabels);
+        var dlg = new ScheduleDialog(dlgVm) { Owner = this };
+
+        bool? result = dlg.ShowDialog();
+
+        if (result == false && dlgVm.RequestDelete)
+        {
+            viewModel.ScheduleItems.Remove(item);
+            SaveSchedules();
+            return;
+        }
+
+        if (result == true && !dlgVm.RequestDelete)
+        {
+            SaveSchedules();
+        }
+    }
+
+    private void SaveSchedules()
+    {
+        try
+        {
+            Directory.CreateDirectory(Path.GetDirectoryName(scheduleSavePath)!);
+            var options = new JsonSerializerOptions { WriteIndented = true };
+            string json = JsonSerializer.Serialize(viewModel.ScheduleItems, options);
+            File.WriteAllText(scheduleSavePath, json);
+        }
+        catch (Exception ex)
+        {
+            MessageBox.Show($"스케줄 저장 오류: {ex.Message}");
+        }
+    }
+
+    private void LoadSchedules()
+    {
+        try
+        {
+            if (!File.Exists(scheduleSavePath))
+                return;
+
+            string json = File.ReadAllText(scheduleSavePath).Trim();
+
+            if (string.IsNullOrEmpty(json))
+                return;
+
+            var loaded = JsonSerializer.Deserialize<ObservableCollection<ScheduleItem>>(json);
+
+            if (loaded == null || loaded.Count == 0)
+                return;
+
+            viewModel.ScheduleItems.Clear();
+            foreach (var item in loaded)
+                viewModel.ScheduleItems.Add(item);
+        }
+        catch (Exception ex)
+        {
+            MessageBox.Show($"스케줄 불러오기 오류: {ex.Message}");
+        }
+    }
+
+    #endregion
 }
