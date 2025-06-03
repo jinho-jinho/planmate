@@ -286,7 +286,7 @@
 
                 <!-- 하단 버튼 영역 -->
                 <Grid VerticalAlignment="Bottom" Height="60" Margin="10">
-                    <Button Content="✨" Width="50" Height="50" HorizontalAlignment="Left" VerticalAlignment="Center"/>
+                    <Button Content="✨" Width="50" Height="50" HorizontalAlignment="Left" VerticalAlignment="Center" Click="AiButton_Click"/>
                     <Slider x:Name="OpacitySlider" Width="200" Minimum="0.1" Maximum="1.0" Value="1.0"
                             TickFrequency="0.1" SmallChange="0.1" LargeChange="0.2"
                             VerticalAlignment="Center" HorizontalAlignment="Center"

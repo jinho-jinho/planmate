@@ -104,6 +104,16 @@ public partial class MainWindow : Window
 
         }
     }
+    #region ai 관련 코드
+    private void AiButton_Click(object sender, RoutedEventArgs e)
+    {
+        // taskList는 현재 프로그램에서 관리 중인 일정 리스트 (예: ObservableCollection<TaskItem>)
+        var taskListForAi = taskList.ToList(); // List<TaskItem>로 변환
+        var chatWindow = new AiChatWindow(taskListForAi);
+        chatWindow.Show();
+    }
+
+    #endregion
 
     #region 일간, 월간 관련 코드
     private void DeleteTask(object obj)

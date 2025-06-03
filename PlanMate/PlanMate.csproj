@@ -15,6 +15,10 @@
   </ItemGroup>
 
   <ItemGroup>
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
+  </ItemGroup>
+
+  <ItemGroup>
     <Resource Include="Resources\file_icon.png" />
     <Resource Include="Resources\planmate.png">
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>
