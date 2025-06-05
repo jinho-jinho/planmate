@@ -27,7 +27,7 @@ public partial class MainWindow : Window
 {
     private ObservableCollection<TaskItem> taskList = new();
     public string CurrentDate => DateTime.Now.ToString("yyyy년 M월 d일 (ddd)", new CultureInfo("ko-KR"));
-    public ICommand DeleteTaskCommand { get; set; }
+    public ICommand DeleteTaskCommand { get; }
     private readonly string savePath = Path.Combine(
         Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "PlanMate", "tasks.json");
     string memoPath = Path.Combine(
@@ -37,8 +37,7 @@ public partial class MainWindow : Window
     private DateTime currentMonth = DateTime.Today;
     private Border? selectedBorder = null;
     private DateTime selectedDate = DateTime.Today; // 🔹 기본 선택: 오늘
-    private MainViewModel viewModel;
-
+    public MainViewModel viewModel { get; }
     // 시간표 드래그용 필드
     private Point _dragStartPoint;
     private bool _isDragging;
@@ -48,13 +47,12 @@ public partial class MainWindow : Window
     {
         InitializeComponent();
 
-        // ViewModel 생성 및 바인딩
-        viewModel = new MainViewModel();
-        DataContext = this; // MainWindow가 DataContext, 내부에서 ViewModel 노출
+        viewModel = new MainViewModel();  // ViewModel 생성
+        DataContext = ViewModel;               // MainWindow를 루트 바인딩 객체로 사용
 
-        //DeleteTaskCommand = new RelayCommand(DeleteTask);
+        DeleteTaskCommand = new RelayCommand(DeleteTask);  // 삭제 커맨드
 
-        LoadTasks(); // taskList ← 로컬 ObservableCollection<TaskItem>
+        LoadTasks();
         DailyTaskList.ItemsSource = taskList;
 
         if (File.Exists(memoPath))
@@ -63,7 +61,6 @@ public partial class MainWindow : Window
         }
 
         GenerateCalendar();
-
         LoadSchedules();
 
         Loaded += (s, e) => DrawLines();
