@@ -27,7 +27,7 @@ public partial class MainWindow : Window
 {
     private ObservableCollection<TaskItem> taskList = new();
     public string CurrentDate => DateTime.Now.ToString("yyyy년 M월 d일 (ddd)", new CultureInfo("ko-KR"));
-    public ICommand DeleteTaskCommand { get; }
+    public ICommand DeleteTaskCommand { get; set; }
     private readonly string savePath = Path.Combine(
         Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "PlanMate", "tasks.json");
     string memoPath = Path.Combine(
@@ -52,7 +52,7 @@ public partial class MainWindow : Window
         viewModel = new MainViewModel();
         DataContext = viewModel; // MainWindow가 DataContext, 내부에서 ViewModel 노출
 
-        DeleteTaskCommand = new RelayCommand(DeleteTask);
+        //DeleteTaskCommand = new RelayCommand(DeleteTask);
 
         LoadTasks(); // taskList ← 로컬 ObservableCollection<TaskItem>
         DailyTaskList.ItemsSource = taskList;
@@ -79,6 +79,7 @@ public partial class MainWindow : Window
         if (tabIndex == 0 || tabIndex == 1) // 일간, 월간
         {
             var addWindow = new AddTaskWindow();
+            addWindow.Owner = this;
             if (addWindow.ShowDialog() == true)
             {
                 taskList.Add(addWindow.CreatedTask);
@@ -248,10 +249,11 @@ public partial class MainWindow : Window
                     if (e.ClickCount == 2)
                     {
                         var tasks = taskList.Where(t =>
-    t.StartDate.Date <= currentDate &&
-    t.EndDate.Date >= currentDate).ToList();
+                            t.StartDate.Date <= currentDate &&
+                            t.EndDate.Date >= currentDate).ToList();
 
                         var dayWindow = new DayTaskWindow(currentDate, taskList, RefreshTaskList, GenerateCalendar);
+                        dayWindow.Owner = this;
                         dayWindow.Show();
 
 
@@ -376,8 +378,6 @@ public partial class MainWindow : Window
         foreach (var t in sorted)
             taskList.Add(t);
     }
-
-
 
 
     private void MemoBox_TextChanged(object sender, TextChangedEventArgs e)

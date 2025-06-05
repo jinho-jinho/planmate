@@ -1,36 +1,72 @@
 ﻿<Window x:Class="PlanMate.Views.AiChatWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:local="clr-namespace:PlanMate.Converters"
+        xmlns:models="clr-namespace:PlanMate.Models"
         Title="AI 챗봇 비서" Height="600" Width="400">
+    <Window.Resources>
+        <local:RoleToColorConverter x:Key="RoleToColorConverter"/>
+        <local:RoleToAlignmentConverter x:Key="RoleToAlignmentConverter"/>
+    </Window.Resources>
+
     <Grid Margin="10">
         <Grid.RowDefinitions>
             <RowDefinition Height="*" />
-            <!-- 대화 내역 -->
             <RowDefinition Height="Auto" />
-            <!-- 예시 질문 -->
             <RowDefinition Height="Auto" />
-            <!-- 입력 영역 -->
         </Grid.RowDefinitions>
 
-        <!-- 대화 내역 -->
-        <ListBox x:Name="ChatList" Grid.Row="0" Margin="0,0,0,10">
+        <ListBox x:Name="ChatList"
+         Grid.Row="0"
+         Margin="0,0,0,10"
+         ItemsSource="{Binding}"
+         Background="Transparent"
+         BorderThickness="0"
+         SnapsToDevicePixels="True"
+         ScrollViewer.VerticalScrollBarVisibility="Auto"
+         VirtualizingStackPanel.IsVirtualizing="False">
+
             <ListBox.ItemTemplate>
-                <DataTemplate>
-                    <TextBlock Text="{Binding}" TextWrapping="Wrap" />
+                <DataTemplate DataType="{x:Type models:ChatMessage}">
+                    <Border Background="{Binding Role, Converter={StaticResource RoleToColorConverter}}"
+                    Padding="10"
+                    CornerRadius="10"
+                    MaxWidth="250"
+                    Margin="5">
+                        <TextBlock x:Name="MessageBlock"
+                           TextWrapping="Wrap"
+                           Foreground="White"
+                           FontSize="14"
+                           Loaded="MessageBlock_Loaded"/>
+
+                    </Border>
                 </DataTemplate>
             </ListBox.ItemTemplate>
         </ListBox>
 
-        <!-- 예시 질문 버튼 -->
-        <StackPanel Grid.Row="1" Orientation="Vertical" HorizontalAlignment="Left" Margin="0,0,0,10">
+        <StackPanel 
+            x:Name="ExampleButtonPanel"
+            Grid.Row="1"
+            Orientation="Horizontal"
+            HorizontalAlignment="Left"
+            Margin="0,0,0,10">
             <Button Content="일정 요약 해줘." Margin="5" Click="ExampleButton_Click"/>
             <Button Content="일정 조언 해줘." Margin="5" Click="ExampleButton_Click"/>
         </StackPanel>
 
-        <!-- 입력창과 전송 버튼 -->
+
         <DockPanel Grid.Row="2">
-            <TextBox x:Name="UserInputBox" Width="280" Margin="0,0,10,0"/>
-            <Button Content="전송" Width="80" Click="SendButton_Click"/>
+            <TextBox x:Name="UserInputBox"
+             Width="280"
+             Margin="0,0,10,0"
+             IsEnabled="True"
+             KeyDown="UserInputBox_KeyDown"/>
+
+            <Button x:Name="SendButton"
+            Content="전송"
+            Width="80"
+            Click="SendButton_Click"
+            IsEnabled="True"/>
         </DockPanel>
     </Grid>
 </Window>

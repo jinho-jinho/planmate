@@ -14,7 +14,7 @@ namespace PlanMate.Services
     {
         private readonly HttpClient _httpClient;
         private const string ApiUrl = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-04-17:generateContent";
-        private const string ApiKey = "AIzaSyBSp8l09lNLK_KUJQsw6NOPTIeicMB1t08"; // 보안 시 별도 관리 권장
+        private const string ApiKey = "AIzaSyBSp8l09lNLK_KUJQsw6NOPTIeicMB1t08"; // 보안은 몰라.
 
         public GeminiApiService()
         {
@@ -70,14 +70,14 @@ namespace PlanMate.Services
             string jsonSchedule = JsonConvert.SerializeObject(minimalSchedule, Newtonsoft.Json.Formatting.Indented);
 
             string prompt = $@"
-다음은 사용자의 일정 목록입니다. 각 일정에는 제목, 시작일/시간, 종료일/시간, 중요도, 설명, 완료 여부가 포함되어 있습니다.
+                다음은 사용자의 일정 목록입니다. 각 일정에는 제목, 시작일/시간, 종료일/시간, 중요도, 설명, 완료 여부가 포함되어 있습니다.
 
-당신의 임무는 다음 사용자 요청을 바탕으로 응답을 생성하는 것입니다:
-- 사용자 요청: {userInstruction}
+                당신의 임무는 다음 사용자 요청을 바탕으로 응답을 생성하는 것입니다:
+                - 사용자 요청: {userInstruction}
 
-일정 목록 (JSON):
-{jsonSchedule}
-";
+                일정 목록 (JSON):
+                {jsonSchedule}
+                ";
 
             return await GetResponseAsync(prompt);
         }

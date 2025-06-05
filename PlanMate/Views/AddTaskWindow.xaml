@@ -2,7 +2,10 @@
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:local="clr-namespace:PlanMate.Converters"
-        Title="할 일" Height="550" Width="380" Loaded="Window_Loaded">
+        Title="할 일" Height="550" Width="380"
+        WindowStartupLocation="CenterOwner"
+        Loaded="Window_Loaded">
+
     <Window.Resources>
         <local:ImportanceToColorConverter x:Key="ImportanceToColorConverter"/>
     </Window.Resources>

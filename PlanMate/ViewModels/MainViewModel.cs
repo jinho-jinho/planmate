@@ -12,6 +12,8 @@ namespace PlanMate.ViewModels
 {
     public class MainViewModel : INotifyPropertyChanged
     {
+        public ObservableCollection<TaskItem> TaskList { get; } = new();
+        public ICommand DeleteTaskCommand { get; }
         private const string JsonFileName = "schedules.json";
 
         // 커맨드
@@ -32,7 +34,7 @@ namespace PlanMate.ViewModels
         {
             // JSON 파일에서 기존 일정 로드(있는 경우)
             LoadFromJson();
-
+            DeleteTaskCommand = new RelayCommand(DeleteTask, obj => obj is TaskItem);
             // 컬렉션 변경 시 자동 저장
             ScheduleItems.CollectionChanged += (s, e) => SaveToJson();
 
@@ -41,6 +43,18 @@ namespace PlanMate.ViewModels
                 _ => OnAddSchedule(),
                 _ => true
             );
+
+        }
+        private void DeleteTask(object obj)
+        {
+            if (obj is TaskItem task)
+            {
+                if (MessageBox.Show($"{task.Name} 일정을 삭제하시겠습니까?", "확인", MessageBoxButton.YesNo) == MessageBoxResult.Yes)
+                {
+                    TaskList.Remove(task);
+                    // 예시: TaskList 저장 로직 필요시 추가
+                }
+            }
         }
 
         #region JSON 저장/로드

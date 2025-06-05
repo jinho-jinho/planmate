@@ -58,8 +58,19 @@
 
                 <!-- 탭 메뉴 -->
                 <TabControl x:Name="MainTab" Margin="10,60,10,80">
+                    <TabControl.Resources>
+                        <DataTemplate x:Key="TabHeaderTemplate">
+                            <Border Width="50" Height="25" Background="Transparent">
+                                <TextBlock Text="{Binding}" 
+                           HorizontalAlignment="Center"
+                           VerticalAlignment="Center"
+                           FontSize="14"
+                           Foreground="Black" />
+                            </Border>
+                        </DataTemplate>
+                    </TabControl.Resources>
                     <!-- 일간 -->
-                    <TabItem Header="일간">
+                    <TabItem Header="D-Day" HeaderTemplate="{StaticResource TabHeaderTemplate}">
                         <Grid>
                             <ScrollViewer VerticalScrollBarVisibility="Auto">
                                 <ListBox x:Name="DailyTaskList" SelectionChanged="DailyTaskList_SelectionChanged">
@@ -78,7 +89,7 @@
                                                             BorderBrush="Transparent"
                                                             Cursor="Hand"
                                                             DockPanel.Dock="Left"
-                                                            Command="{Binding DataContext.DeleteTaskCommand, RelativeSource={RelativeSource AncestorType=Window}}"
+                                                            Command="{Binding DeleteTaskCommand}"
                                                             CommandParameter="{Binding}">
                                                         <Button.Style>
                                                             <Style TargetType="Button">
@@ -132,7 +143,7 @@
                     </TabItem>
 
                     <!-- 월간 -->
-                    <TabItem Header="월간">
+                    <TabItem Header="캘린더" HeaderTemplate="{StaticResource TabHeaderTemplate}">
                         <Grid>
                             <!-- 월 타이틀 & 이전/다음 월 버튼 -->
                             <Grid HorizontalAlignment="Stretch" Margin="0,10">
@@ -180,7 +191,7 @@
                     </TabItem>
 
                     <!-- 3) 시간표 탭 -->
-                    <TabItem Header="시간표">
+                    <TabItem Header="시간표" HeaderTemplate="{StaticResource TabHeaderTemplate}">
                         <!-- gijin 기준의 ScheduleCanvas + 시간축 구조 유지 -->
                         <!-- 생략 가능: 이미 잘 정리된 버전 있으면 복사 가능 -->
                         <Grid>
@@ -277,7 +288,7 @@
                     </TabItem>
 
                     <!-- 메모 -->
-                    <TabItem Header="메모">
+                    <TabItem Header="메 모" HeaderTemplate="{StaticResource TabHeaderTemplate}">
                         <Grid Margin="5">
                             <TextBox x:Name="MemoBox" AcceptsReturn="True" VerticalScrollBarVisibility="Auto" TextWrapping="Wrap" FontSize="14" TextChanged="MemoBox_TextChanged"/>
                         </Grid>
