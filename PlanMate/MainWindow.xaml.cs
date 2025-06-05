@@ -50,7 +50,7 @@ public partial class MainWindow : Window
 
         // ViewModel 생성 및 바인딩
         viewModel = new MainViewModel();
-        DataContext = viewModel; // MainWindow가 DataContext, 내부에서 ViewModel 노출
+        DataContext = this; // MainWindow가 DataContext, 내부에서 ViewModel 노출
 
         //DeleteTaskCommand = new RelayCommand(DeleteTask);
 

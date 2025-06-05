@@ -89,7 +89,7 @@
                                                             BorderBrush="Transparent"
                                                             Cursor="Hand"
                                                             DockPanel.Dock="Left"
-                                                            Command="{Binding DeleteTaskCommand}"
+                                                            Command="{Binding viewModel.DeleteTaskCommand, RelativeSource={RelativeSource AncestorType=Window}}"
                                                             CommandParameter="{Binding}">
                                                         <Button.Style>
                                                             <Style TargetType="Button">
