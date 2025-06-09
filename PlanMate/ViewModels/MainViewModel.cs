@@ -7,15 +7,45 @@ using System.Windows.Input;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using PlanMate.Models;
+using PlanMate.Services;
+using System.Collections.Specialized;
+using System.Runtime.CompilerServices;
 
 namespace PlanMate.ViewModels
 {
     public class MainViewModel : INotifyPropertyChanged
     {
+        public event PropertyChangedEventHandler PropertyChanged;
+        protected void OnPropertyChanged(string name)
+            => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
+
         private const string JsonFileName = "schedules.json";
+
+        private const string MemoJsonFileName = "memos.json";
+        private readonly JsonStorageService _memoStorageService;
+
+        public ObservableCollection<MemoItem> Memos { get; } = new ObservableCollection<MemoItem>();
+
+        private MemoItem _selectedMemo;
+        public MemoItem SelectedMemo
+        {
+            get => _selectedMemo;
+            set
+            {
+                if (_selectedMemo != null)
+                    _selectedMemo.PropertyChanged -= MemoPropertyChanged;
+                _selectedMemo = value;
+                OnPropertyChanged(nameof(SelectedMemo));
+                if (_selectedMemo != null)
+                    _selectedMemo.PropertyChanged += MemoPropertyChanged;
+                CommandManager.InvalidateRequerySuggested();
+            }
+        }
 
         // 커맨드
         public ICommand AddScheduleCommand { get; }
+        public ICommand AddMemoCommand { get; }
+        public ICommand RemoveMemoCommand { get; }
 
         public string CurrentDate => DateTime.Now.ToString("yyyy/MM/dd");
 
@@ -30,6 +60,7 @@ namespace PlanMate.ViewModels
 
         public MainViewModel()
         {
+            #region 시간표
             // JSON 파일에서 기존 일정 로드(있는 경우)
             LoadFromJson();
 
@@ -41,7 +72,51 @@ namespace PlanMate.ViewModels
                 _ => OnAddSchedule(),
                 _ => true
             );
+            #endregion
+
+            #region 메모
+            _memoStorageService = new JsonStorageService(MemoJsonFileName);
+            var saved = _memoStorageService.LoadMemos();
+            foreach (var memo in saved)
+            {
+                Memos.Add(memo);
+                memo.PropertyChanged += MemoPropertyChanged;
+            }
+            if (Memos.Any()) SelectedMemo = Memos.First();
+            Memos.CollectionChanged += MemoCollectionChanged;
+
+            AddMemoCommand = new RelayCommand(_ => AddMemo());
+            RemoveMemoCommand = new RelayCommand(_ => RemoveMemo(), _ => SelectedMemo != null);
+            #endregion
         }
+
+        #region 메모
+        private void MemoCollectionChanged(object sender, NotifyCollectionChangedEventArgs e)
+        {
+            if (e.NewItems != null) foreach (MemoItem m in e.NewItems) m.PropertyChanged += MemoPropertyChanged;
+            if (e.OldItems != null) foreach (MemoItem m in e.OldItems) m.PropertyChanged -= MemoPropertyChanged;
+            SaveMemos();
+        }
+
+        private void MemoPropertyChanged(object sender, PropertyChangedEventArgs e) => SaveMemos();
+
+        private void AddMemo()
+        {
+            var memo = new MemoItem { Title = "새 메모", Content = string.Empty };
+            Memos.Add(memo);
+            SelectedMemo = memo;
+        }
+
+        private void RemoveMemo()
+        {
+            if (SelectedMemo == null) return;
+            var toRemove = SelectedMemo;
+            SelectedMemo = Memos.FirstOrDefault(m => m != toRemove);
+            Memos.Remove(toRemove);
+        }
+
+        private void SaveMemos() => _memoStorageService.SaveMemos(Memos);
+        #endregion
 
         #region JSON 저장/로드
 
@@ -114,9 +189,5 @@ namespace PlanMate.ViewModels
         }
 
         #endregion
-
-        public event PropertyChangedEventHandler PropertyChanged;
-        protected void OnPropertyChanged(string name)
-            => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
     }
 }
