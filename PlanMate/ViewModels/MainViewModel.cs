@@ -7,11 +7,13 @@ using System.Windows.Input;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using PlanMate.Models;
+using System.Windows.Media;
 
 namespace PlanMate.ViewModels
 {
     public class MainViewModel : INotifyPropertyChanged
     {
+
         public ObservableCollection<TaskItem> TaskList { get; } = new();
         public ICommand DeleteTaskCommand { get; }
         private const string JsonFileName = "schedules.json";
@@ -45,6 +47,32 @@ namespace PlanMate.ViewModels
             );
 
         }
+        #region 배경색 관련 속성 및 메서드
+
+        private Brush _mainBackground = Brushes.LightGray;
+        public Brush MainBackground
+        {
+            get => _mainBackground;
+            set
+            {
+                _mainBackground = value;
+                OnPropertyChanged(nameof(MainBackground));
+            }
+        }
+
+        public void ChangeBackground(string color)
+        {
+            try
+            {
+                MainBackground = (Brush)new BrushConverter().ConvertFromString(color);
+            }
+            catch
+            {
+                MessageBox.Show($"'{color}'는 유효한 색상명이 아닙니다.", "오류", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+        }
+
+        #endregion
         private void DeleteTask(object obj)
         {
             if (obj is TaskItem task)

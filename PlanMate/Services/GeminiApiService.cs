@@ -13,8 +13,8 @@ namespace PlanMate.Services
     public class GeminiApiService
     {
         private readonly HttpClient _httpClient;
-        private const string ApiUrl = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-04-17:generateContent";
-        private const string ApiKey = "AIzaSyBSp8l09lNLK_KUJQsw6NOPTIeicMB1t08"; // 보안은 몰라.
+        private const string ApiUrl = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent";
+        private const string ApiKey = "AIzaSyBSp8l09lNLK_KUJQsw6NOPTIeicMB1t08";
 
         public GeminiApiService()
         {

@@ -32,7 +32,6 @@
                         <Border Background="{Binding Importance, Converter={StaticResource ImportanceToColorConverter}}" Margin="5" Padding="5" CornerRadius="5">
                             <DockPanel>
                                 <!-- ❌ 삭제 버튼 -->
-                                <!-- ❌ 삭제 버튼 -->
                                 <Button Content="❌"
         Width="20" Height="20"
         Margin="2,2,13,2"  

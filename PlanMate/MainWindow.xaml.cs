@@ -14,6 +14,7 @@ using System.Windows.Documents;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
+using System.Windows.Media.Media3D;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
 using Path = System.IO.Path;
@@ -42,13 +43,31 @@ public partial class MainWindow : Window
     private Point _dragStartPoint;
     private bool _isDragging;
     private Rectangle _newRectPreview;
+    private static readonly string SettingPath = Path.Combine(
+    Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+    "PlanMate",
+    "user_settings.json");
 
+    public class UserSettings
+    {
+        public double Left { get; set; }
+        public double Top { get; set; }
+        public double Width { get; set; }
+        public double Height { get; set; }
+        public int LastSelectedTabIndex { get; set; }
+        public string BackgroundColor { get; set; } = "LightGray";
+    }
+    private UserSettings settings = new();
     public MainWindow()
     {
         InitializeComponent();
 
+        
+
         viewModel = new MainViewModel();  // ViewModel 생성
-        DataContext = ViewModel;               // MainWindow를 루트 바인딩 객체로 사용
+        DataContext = ViewModel;          // MainWindow를 루트 바인딩 객체로 사용
+
+        LoadWindowSettings();
 
         DeleteTaskCommand = new RelayCommand(DeleteTask);  // 삭제 커맨드
 
@@ -63,11 +82,178 @@ public partial class MainWindow : Window
         GenerateCalendar();
         LoadSchedules();
 
-        Loaded += (s, e) => DrawLines();
+        // 🔹 UI 로드 후 실행할 작업
+        Loaded += (s, e) =>
+        {
+            DrawLines();
+
+            // 반드시 Dispatcher로 지연 실행
+            Dispatcher.InvokeAsync(() =>
+            {
+                if (settings.LastSelectedTabIndex >= 0 && settings.LastSelectedTabIndex < MainTab.Items.Count)
+                {
+                    MainTab.SelectedIndex = settings.LastSelectedTabIndex;
+                    Console.WriteLine($"[복원] 설정된 탭 인덱스: {settings.LastSelectedTabIndex}");
+                }
+            }, System.Windows.Threading.DispatcherPriority.ContextIdle);
+        };
+
+        // 🔹 창 종료 시 사용자 설정 저장
+        Closing += (s, e) => SaveWindowSettings();
+
+        // 🔹 탭 변경 시 인덱스 저장
+        MainTab.SelectionChanged += MainTab_SelectionChanged;
     }
 
-    // ViewModel 접근용 프로퍼티
-    public MainViewModel ViewModel => viewModel;
+    private void ChangeBg_Click(object sender, RoutedEventArgs e)
+    {
+        if (sender is Button btn && btn.Tag is string color)
+        {
+            if (DataContext is MainViewModel vm)
+            {
+                vm.ChangeBackground(color);
+                settings.BackgroundColor = color;  // 🟢 색 이름을 그대로 저장
+                SaveWindowSettings();
+            }
+        }
+    }
+
+
+    private void Resize_TopLeft(object sender, DragDeltaEventArgs e)
+{
+    var newWidth = Width - e.HorizontalChange;
+    var newHeight = Height - e.VerticalChange;
+    if (newWidth > MinWidth)
+    {
+        Left += e.HorizontalChange;
+        Width = newWidth;
+    }
+    if (newHeight > MinHeight)
+    {
+        Top += e.VerticalChange;
+        Height = newHeight;
+    }
+}
+
+private void Resize_TopRight(object sender, DragDeltaEventArgs e)
+{
+    var newWidth = Width + e.HorizontalChange;
+    var newHeight = Height - e.VerticalChange;
+    if (newWidth > MinWidth)
+    {
+        Width = newWidth;
+    }
+    if (newHeight > MinHeight)
+    {
+        Top += e.VerticalChange;
+        Height = newHeight;
+    }
+}
+
+private void Resize_BottomLeft(object sender, DragDeltaEventArgs e)
+{
+    var newWidth = Width - e.HorizontalChange;
+    var newHeight = Height + e.VerticalChange;
+    if (newWidth > MinWidth)
+    {
+        Left += e.HorizontalChange;
+        Width = newWidth;
+    }
+    if (newHeight > MinHeight)
+    {
+        Height = newHeight;
+    }
+}
+
+private void Resize_BottomRight(object sender, DragDeltaEventArgs e)
+{
+    var newWidth = Width + e.HorizontalChange;
+    var newHeight = Height + e.VerticalChange;
+    if (newWidth > MinWidth) Width = newWidth;
+    if (newHeight > MinHeight) Height = newHeight;
+}
+
+private void Resize_Top(object sender, DragDeltaEventArgs e)
+{
+    var newHeight = Height - e.VerticalChange;
+    if (newHeight > MinHeight)
+    {
+        Top += e.VerticalChange;
+        Height = newHeight;
+    }
+}
+
+private void Resize_Bottom(object sender, DragDeltaEventArgs e)
+{
+    var newHeight = Height + e.VerticalChange;
+    if (newHeight > MinHeight)
+        Height = newHeight;
+}
+
+private void Resize_Left(object sender, DragDeltaEventArgs e)
+{
+    var newWidth = Width - e.HorizontalChange;
+    if (newWidth > MinWidth)
+    {
+        Left += e.HorizontalChange;
+        Width = newWidth;
+    }
+}
+
+private void Resize_Right(object sender, DragDeltaEventArgs e)
+{
+    var newWidth = Width + e.HorizontalChange;
+    if (newWidth > MinWidth)
+        Width = newWidth;
+}
+
+
+// ViewModel 접근용 프로퍼티
+public MainViewModel ViewModel => viewModel;
+    private void LoadWindowSettings()
+    {
+        if (File.Exists(SettingPath))
+        {
+            var json = File.ReadAllText(SettingPath);
+            settings = JsonSerializer.Deserialize<UserSettings>(json) ?? new UserSettings();
+
+            this.Left = settings.Left;
+            this.Top = settings.Top;
+            this.Width = settings.Width;
+            this.Height = settings.Height;
+
+            if (!string.IsNullOrEmpty(settings.BackgroundColor) && DataContext is MainViewModel vm)
+            {
+                vm.ChangeBackground(settings.BackgroundColor);
+            }
+        }
+    }
+
+
+    private void SaveWindowSettings()
+    {
+        settings.Left = this.Left;
+        settings.Top = this.Top;
+        settings.Width = this.Width;
+        settings.Height = this.Height;
+
+
+        Directory.CreateDirectory(Path.GetDirectoryName(SettingPath)!);
+        var json = JsonSerializer.Serialize(settings);
+        File.WriteAllText(SettingPath, json);
+    }
+
+    private void MainTab_SelectionChanged(object sender, SelectionChangedEventArgs e)
+    {
+        if (IsLoaded && MainTab.SelectedIndex >= 0)
+        {
+            settings.LastSelectedTabIndex = MainTab.SelectedIndex;
+
+            SaveWindowSettings();
+        }
+    }
+
+
 
     private void AddTaskButton_Click(object sender, RoutedEventArgs e)
     {
@@ -75,8 +261,11 @@ public partial class MainWindow : Window
 
         if (tabIndex == 0 || tabIndex == 1) // 일간, 월간
         {
-            var addWindow = new AddTaskWindow();
+            var targetDate = selectedDate;  // 🔹 선택된 날짜 사용
+
+            var addWindow = new AddTaskWindow(targetDate);  // 🔹 날짜 넘기기
             addWindow.Owner = this;
+
             if (addWindow.ShowDialog() == true)
             {
                 taskList.Add(addWindow.CreatedTask);
@@ -105,9 +294,25 @@ public partial class MainWindow : Window
     #region ai 관련 코드
     private void AiButton_Click(object sender, RoutedEventArgs e)
     {
-        // taskList는 현재 프로그램에서 관리 중인 일정 리스트 (예: ObservableCollection<TaskItem>)
         var taskListForAi = taskList.ToList(); // List<TaskItem>로 변환
-        var chatWindow = new AiChatWindow(taskListForAi);
+        var chatWindow = new AiChatWindow(taskListForAi)
+        {
+            Owner = this, // 소유자 설정 (닫을 때 같이 닫히도록)
+            Top = this.Top // 세로 위치 맞춤
+        };
+
+        double screenWidth = SystemParameters.WorkArea.Width;
+
+        // 오른쪽에 여유 공간이 있으면 오른쪽에, 아니면 왼쪽에 띄움
+        if (this.Left + this.Width + chatWindow.Width <= screenWidth)
+        {
+            chatWindow.Left = this.Left + this.Width;
+        }
+        else
+        {
+            chatWindow.Left = this.Left - chatWindow.Width;
+        }
+
         chatWindow.Show();
     }
 
@@ -313,7 +518,11 @@ public partial class MainWindow : Window
     {
         if (DailyTaskList.SelectedItem is TaskItem selectedTask)
         {
-            var editWindow = new AddTaskWindow(selectedTask);  // 기존 Task 전달
+            var editWindow = new AddTaskWindow(selectedTask)
+            {
+                Owner = this  // MainWindow를 오너로 지정
+            };
+
             if (editWindow.ShowDialog() == true)
             {
                 // 변경사항은 이미 바인딩된 TaskItem에 반영됨

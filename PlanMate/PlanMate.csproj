@@ -10,6 +10,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <None Remove="Resources\ai_logo.png" />
     <None Remove="Resources\file_icon.png" />
     <None Remove="Resources\planmate.png" />
   </ItemGroup>
@@ -19,6 +20,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Resource Include="Resources\ai_logo.png" />
     <Resource Include="Resources\file_icon.png" />
     <Resource Include="Resources\planmate.png">
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>

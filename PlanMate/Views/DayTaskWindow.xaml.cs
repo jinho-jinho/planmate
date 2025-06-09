@@ -92,7 +92,11 @@ namespace PlanMate.Views
         {
             if (DayTaskListBox.SelectedItem is TaskItem selectedTask)
             {
-                var editWindow = new AddTaskWindow(selectedTask);
+                var editWindow = new AddTaskWindow(selectedTask)
+                {
+                    Owner = this  // 현재 DayTaskWindow를 오너로 설정
+                };
+
                 if (editWindow.ShowDialog() == true)
                 {
                     RefreshList();

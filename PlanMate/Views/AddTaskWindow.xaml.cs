@@ -30,6 +30,18 @@ namespace PlanMate.Views
             DataContext = CreatedTask;
             isEditMode = true;
         }
+        public AddTaskWindow(DateTime defaultDate)
+        {
+            InitializeComponent();
+            CreatedTask = new TaskItem
+            {
+                StartDate = defaultDate,
+                EndDate = defaultDate
+            };
+            DataContext = CreatedTask;
+            isEditMode = false;
+        }
+
 
         // 🔹 관련 문서 추가 (탐색기에서 선택)
         private void AddDoc_Click(object sender, RoutedEventArgs e)
@@ -266,11 +278,15 @@ namespace PlanMate.Views
                 }
 
                 selectedImportance = CreatedTask.Importance;
-
                 relatedDocs = new List<string>(CreatedTask.RelatedDocs ?? new());
                 UpdateDocListBox();
             }
+            else if (!isEditMode && CreatedTask != null)
+            {
+                // 신규 등록 시 기본 날짜 설정 
+                StartDatePicker.SelectedDate = CreatedTask.StartDate;
+                EndDatePicker.SelectedDate = CreatedTask.EndDate;
+            }
         }
-
     }
 }

@@ -7,6 +7,7 @@ using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Documents;
+using System.Windows.Media;
 
 namespace PlanMate.Views
 {
@@ -27,6 +28,11 @@ namespace PlanMate.Views
 
         private async void SendMessageAsync(string message)
         {
+            if (EmptyHintPanel.Visibility == Visibility.Visible)
+            {
+                EmptyHintPanel.Visibility = Visibility.Collapsed;
+                ChatList.Visibility = Visibility.Visible;
+            }
             // 모든 입력 UI 잠금
             UserInputBox.IsEnabled = false;
             SendButton.IsEnabled = false;
@@ -67,13 +73,33 @@ namespace PlanMate.Views
 
         private void ScrollToBottom()
         {
-            // UI가 렌더링 완료된 후에 강제로 스크롤
             Dispatcher.InvokeAsync(() =>
             {
-                ChatList.UpdateLayout();
-                ChatList.ScrollIntoView(ChatList.Items[ChatList.Items.Count - 1]);
+                var scrollViewer = FindVisualChild<ScrollViewer>(ChatList);
+                if (scrollViewer != null)
+                {
+                    scrollViewer.ScrollToBottom();  // ← ScrollToEnd 보다 안전
+                }
             }, System.Windows.Threading.DispatcherPriority.Background);
         }
+
+        private T? FindVisualChild<T>(DependencyObject parent) where T : DependencyObject
+        {
+            for (int i = 0; i < VisualTreeHelper.GetChildrenCount(parent); i++)
+            {
+                DependencyObject child = VisualTreeHelper.GetChild(parent, i);
+                if (child is T typedChild)
+                    return typedChild;
+
+                T? result = FindVisualChild<T>(child);
+                if (result != null)
+                    return result;
+            }
+            return null;
+        }
+
+
+
         private void MessageBlock_Loaded(object sender, RoutedEventArgs e)
         {
             if (sender is TextBlock textBlock &&

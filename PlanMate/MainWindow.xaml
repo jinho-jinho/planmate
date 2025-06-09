@@ -3,9 +3,14 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:local="clr-namespace:PlanMate.Converters"
         xmlns:vm="clr-namespace:PlanMate.ViewModels"
-        Title="PlanMate" Height="800" Width="450"
-        WindowStyle="None" AllowsTransparency="True" Background="Transparent"
-        MouseDown="Window_MouseDown">
+        Title="PlanMate"
+        Height="800" Width="450"
+        MinWidth="300" MinHeight="500"
+        WindowStyle="None"
+        AllowsTransparency="True"
+        Background="Transparent"
+        ResizeMode="CanResize"
+        MouseDown="Window_MouseDown">   
 
     <Window.Resources>
         <local:BoolToVisibilityConverter x:Key="BoolToVisibilityConverter"/>
@@ -13,7 +18,7 @@
         <local:DayToXConverter x:Key="DayToXConverter" ColumnWidth="50"/>
     </Window.Resources>
 
-    <Border Background="White" CornerRadius="10">
+    <Border Background="White" CornerRadius="20">
         <Border.Effect>
             <DropShadowEffect Color="Black" BlurRadius="20" Opacity="0.4" ShadowDepth="0"/>
         </Border.Effect>
@@ -37,12 +42,18 @@
                 </StackPanel>
 
                 <StackPanel Orientation="Horizontal" Grid.Column="1" HorizontalAlignment="Right" Margin="0,5,5,5">
-                    <Button Content="➖" Width="20" Height="20" Margin="1" Click="Minimize_Click"/>
-                    <Button Content="❌" Width="20" Height="20" Margin="1" Click="Close_Click"/>
+                    <Button Content="➖" Width="20" Height="20" Margin="1"
+                        Click="Minimize_Click"
+                        Background="Transparent" BorderBrush="Transparent"
+                        BorderThickness="0" Padding="0" />
+                    <Button Content="❌" Width="20" Height="20" Margin="1"
+                        Click="Close_Click"
+                        Background="Transparent" BorderBrush="Transparent"
+                        BorderThickness="0" Padding="0" />
                 </StackPanel>
             </Grid>
 
-            <Grid Grid.Row="1">
+            <Grid Grid.Row="1" Background="{Binding MainBackground}">
                 <!-- 상단: 날짜, 날씨, 프로필 -->
                 <Grid Margin="10" Height="50" VerticalAlignment="Top">
                     <TextBlock Text="{Binding CurrentDate}" 
@@ -60,7 +71,7 @@
                 <TabControl x:Name="MainTab" Margin="10,60,10,80">
                     <TabControl.Resources>
                         <DataTemplate x:Key="TabHeaderTemplate">
-                            <Border Width="50" Height="25" Background="Transparent">
+                            <Border Width="40" Height="20" Background="Transparent">
                                 <TextBlock Text="{Binding}" 
                            HorizontalAlignment="Center"
                            VerticalAlignment="Center"
@@ -89,7 +100,7 @@
                                                             BorderBrush="Transparent"
                                                             Cursor="Hand"
                                                             DockPanel.Dock="Left"
-                                                            Command="{Binding viewModel.DeleteTaskCommand, RelativeSource={RelativeSource AncestorType=Window}}"
+                                                            Command="{Binding DeleteTaskCommand, RelativeSource={RelativeSource AncestorType=Window}}"
                                                             CommandParameter="{Binding}">
                                                         <Button.Style>
                                                             <Style TargetType="Button">
@@ -297,14 +308,138 @@
 
                 <!-- 하단 버튼 영역 -->
                 <Grid VerticalAlignment="Bottom" Height="60" Margin="10">
-                    <Button Content="✨" Width="50" Height="50" HorizontalAlignment="Left" VerticalAlignment="Center" Click="AiButton_Click"/>
-                    <Slider x:Name="OpacitySlider" Width="200" Minimum="0.1" Maximum="1.0" Value="1.0"
-                            TickFrequency="0.1" SmallChange="0.1" LargeChange="0.2"
-                            VerticalAlignment="Center" HorizontalAlignment="Center"
-                            ValueChanged="OpacitySlider_ValueChanged"/>
-                    <Button Content="＋" Width="50" Height="50" HorizontalAlignment="Right" VerticalAlignment="Center" Click="AddTaskButton_Click"/>
+                    <Button Width="50" Height="50"
+                    HorizontalAlignment="Left"
+                    VerticalAlignment="Center"
+                    Click="AiButton_Click"
+                    Background="{Binding MainBackground}"
+                    BorderBrush="Gray"
+                    BorderThickness="1"
+                    Padding="0"
+                    Cursor="Hand">
+                        <Button.Template>
+                            <ControlTemplate TargetType="Button">
+                                <Border x:Name="border"
+                    Background="{TemplateBinding Background}"
+                    BorderBrush="{TemplateBinding BorderBrush}"
+                    BorderThickness="{TemplateBinding BorderThickness}"
+                    CornerRadius="16"
+                    SnapsToDevicePixels="True">
+                                    <ContentPresenter HorizontalAlignment="Center"
+                                  VerticalAlignment="Center"/>
+                                </Border>
+                                <ControlTemplate.Triggers>
+                                    <Trigger Property="IsMouseOver" Value="True">
+                                        <Setter TargetName="border" Property="Background" Value="#AAFFFFFF"/>
+                                    </Trigger>
+                                    <Trigger Property="IsPressed" Value="True">
+                                        <Setter TargetName="border" Property="Background" Value="#88CCCCCC"/>
+                                    </Trigger>
+                                </ControlTemplate.Triggers>
+                            </ControlTemplate>
+                        </Button.Template>
+                        <Button.Content>
+                            <TextBlock Text="✨" FontSize="20" FontWeight="Bold" Foreground="Gray"/>
+                        </Button.Content>
+                    </Button>
+
+                    <!-- 하단 버튼 영역 (예: Grid.Row="2" 또는 적절한 위치에 삽입) -->
+                    <StackPanel VerticalAlignment="Bottom" Margin="10" HorizontalAlignment="Center">
+
+                        <!-- 불투명도 슬라이더 -->
+                        <Slider x:Name="OpacitySlider"
+                        Width="180"
+                        Height="15"
+                        Minimum="0.1"
+                        Maximum="1.0"
+                        Value="1.0"
+                        TickFrequency="0.1"
+                        SmallChange="0.05"
+                        LargeChange="0.1"
+                        ValueChanged="OpacitySlider_ValueChanged"
+                        HorizontalAlignment="Center"
+                        VerticalAlignment="Center"
+                        ToolTip="{Binding Value, ElementName=OpacitySlider, StringFormat=투명도: {0:P0}}">
+
+                            <Slider.Resources>
+                                <!-- 트랙 색상 -->
+                                <Style TargetType="Track">
+                                    <Setter Property="Height" Value="6"/>
+                                </Style>
+
+                                <!-- 썸 스타일 -->
+                                <Style TargetType="Thumb">
+                                    <Setter Property="Width" Value="10"/>
+                                    <Setter Property="Height" Value="10"/>
+                                    <Setter Property="Background" Value="DarkSlateGray"/>
+                                </Style>
+                            </Slider.Resources>
+                        </Slider>
+
+                        <!-- 색상 선택 버튼 -->
+                        <StackPanel Orientation="Horizontal"
+            HorizontalAlignment="Center"
+            Margin="0,0,0,0">
+                            <Button Background="WhiteSmoke"  Width="20" Height="20" Tag="WhiteSmoke"  Click="ChangeBg_Click" Margin="2"/>
+                            <Button Background="Honeydew"    Width="20" Height="20" Tag="Honeydew"    Click="ChangeBg_Click" Margin="2"/>
+                            <Button Background="MistyRose"   Width="20" Height="20" Tag="MistyRose"   Click="ChangeBg_Click" Margin="2"/>
+                            <Button Background="Lavender"    Width="20" Height="20" Tag="Lavender"    Click="ChangeBg_Click" Margin="2"/>
+                            <Button Background="LightBlue"   Width="20" Height="20" Tag="LightBlue"   Click="ChangeBg_Click" Margin="2"/>
+                            <Button Background="Salmon"      Width="20" Height="20" Tag="Salmon"      Click="ChangeBg_Click" Margin="2"/>
+                            <Button Background="LightGray"   Width="20" Height="20" Tag="LightGray"   Click="ChangeBg_Click" Margin="2"/>
+                        </StackPanel>
+
+                    </StackPanel>
+
+                    <Button Width="50" Height="50"
+        HorizontalAlignment="Right"
+        VerticalAlignment="Center"
+        Click="AddTaskButton_Click"
+        Background="{Binding MainBackground}"
+        BorderBrush="Gray"
+        BorderThickness="1"
+        Padding="0"
+        Cursor="Hand">
+                        <Button.Template>
+                            <ControlTemplate TargetType="Button">
+                                <Border x:Name="border"
+                    Background="{TemplateBinding Background}"
+                    BorderBrush="{TemplateBinding BorderBrush}"
+                    BorderThickness="{TemplateBinding BorderThickness}"
+                    CornerRadius="16"
+                    SnapsToDevicePixels="True">
+                                    <ContentPresenter HorizontalAlignment="Center"
+                                  VerticalAlignment="Center"/>
+                                </Border>
+                                <ControlTemplate.Triggers>
+                                    <Trigger Property="IsMouseOver" Value="True">
+                                        <Setter TargetName="border" Property="Background" Value="#AAFFFFFF"/>
+                                    </Trigger>
+                                    <Trigger Property="IsPressed" Value="True">
+                                        <Setter TargetName="border" Property="Background" Value="#88CCCCCC"/>
+                                    </Trigger>
+                                </ControlTemplate.Triggers>
+                            </ControlTemplate>
+                        </Button.Template>
+                        <Button.Content>
+                            <TextBlock Text="＋" FontSize="24" FontWeight="Bold" Foreground="Gray"/>
+                        </Button.Content>
+                    </Button>
+
                 </Grid>
+                <!-- 리사이즈 Thumb: 8개 방향 -->
+
+                <Thumb Height="2" HorizontalAlignment="Stretch" VerticalAlignment="Bottom" DragDelta="Resize_Bottom" Cursor="SizeNS" Background="#00FFFFFF"/>
+                <Thumb Width="2" HorizontalAlignment="Left" VerticalAlignment="Stretch" DragDelta="Resize_Left" Cursor="SizeWE" Background="#00FFFFFF"/>
+                <Thumb Width="2" HorizontalAlignment="Right" VerticalAlignment="Stretch" DragDelta="Resize_Right" Cursor="SizeWE" Background="#00FFFFFF"/>
+                <Thumb Width="2" Height="2" HorizontalAlignment="Left" VerticalAlignment="Bottom" DragDelta="Resize_BottomLeft" Cursor="SizeNESW" Background="#00FFFFFF"/>
+                <Thumb Width="2" Height="2" HorizontalAlignment="Right" VerticalAlignment="Bottom" DragDelta="Resize_BottomRight" Cursor="SizeNWSE" Background="#00FFFFFF"/>
             </Grid>
+            <Thumb Height="2" HorizontalAlignment="Stretch" VerticalAlignment="Top" DragDelta="Resize_Top" Cursor="SizeNS" Background="#00FFFFFF"/>
+            <Thumb Width="2" Height="2" HorizontalAlignment="Left" VerticalAlignment="Top" DragDelta="Resize_TopLeft" Cursor="SizeNWSE" Background="#00FFFFFF"/>
+            <Thumb Width="2" Height="2" HorizontalAlignment="Right" VerticalAlignment="Top" DragDelta="Resize_TopRight" Cursor="SizeNESW" Background="#00FFFFFF"/>
+            
+            
         </Grid>
     </Border>
 </Window>
