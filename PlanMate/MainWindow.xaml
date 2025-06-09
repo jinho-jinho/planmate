@@ -54,12 +54,16 @@
                     <TextBlock Text="{Binding CurrentDate}" 
                        VerticalAlignment="Center" 
                        FontWeight="Bold" FontSize="14"/>
-
+                    
                     <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
                         <Image Source="{Binding WeatherIcon}" Width="30" Height="30" Margin="0,0,5,0"/>
-                        <TextBlock Text="{Binding Temperature}" FontWeight="Bold" FontSize="14"/>
+                        <TextBlock Text="{Binding Temperature}" FontWeight="Bold" FontSize="14" Margin="0,0,10,0"/>
+                        <TextBlock Text="{Binding Location}" VerticalAlignment="Center" FontSize="14"/>
                     </StackPanel>
-                    <Button Content="👤" HorizontalAlignment="Right" VerticalAlignment="Center" Width="30" Height="30"/>
+
+                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
+                        <Button Content="🌤️" Command="{Binding ShowForecastCommand}" Width="30" Height="30" Margin="0,0,5,0"/>
+                    </StackPanel>
                 </Grid>
 
                 <!-- 탭 메뉴 -->
