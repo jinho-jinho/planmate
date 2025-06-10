@@ -2,6 +2,7 @@
 using PlanMate.ViewModels;
 using PlanMate.Views;
 using System.Collections.ObjectModel;
+using System.ComponentModel;
 using System.Globalization;
 using System.IO;
 using System.Text;
@@ -30,8 +31,6 @@ public partial class MainWindow : Window
     public ICommand DeleteTaskCommand { get; }
     private readonly string savePath = Path.Combine(
         Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "PlanMate", "tasks.json");
-    string memoPath = Path.Combine(
-        Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "PlanMate", "memo.json");
     private readonly string scheduleSavePath = Path.Combine(
         Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "PlanMate", "schedules.json");
     private DateTime currentMonth = DateTime.Today;
@@ -57,16 +56,14 @@ public partial class MainWindow : Window
         LoadTasks(); // taskList ← 로컬 ObservableCollection<TaskItem>
         DailyTaskList.ItemsSource = taskList;
 
-        if (File.Exists(memoPath))
-        {
-            MemoBox.Text = File.ReadAllText(memoPath);
-        }
-
         GenerateCalendar();
 
         LoadSchedules();
 
         Loaded += (s, e) => DrawLines();
+
+        if (DataContext is PlanMate.ViewModels.MainViewModel vm)
+            vm.PropertyChanged += ViewModel_PropertyChanged;
     }
 
     // ViewModel 접근용 프로퍼티
@@ -101,7 +98,7 @@ public partial class MainWindow : Window
         }
         else if (tabIndex == 3) // 메모
         {
-
+            (DataContext as PlanMate.ViewModels.MainViewModel)?.AddMemoCommand.Execute(null);
         }
     }
 
@@ -367,22 +364,6 @@ public partial class MainWindow : Window
             taskList.Add(t);
     }
 
-
-
-
-    private void MemoBox_TextChanged(object sender, TextChangedEventArgs e)
-    {
-        try
-        {
-            Directory.CreateDirectory(Path.GetDirectoryName(memoPath)!);
-            File.WriteAllText(memoPath, MemoBox.Text);
-        }
-        catch (Exception ex)
-        {
-            MessageBox.Show("메모 저장 실패: " + ex.Message);
-        }
-    }
-
     private void OpacitySlider_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
     {
         this.Opacity = e.NewValue;
@@ -402,7 +383,6 @@ public partial class MainWindow : Window
     }
 
     #endregion
-
 
     #region 시간표 관련 코드
     // 요일, 시간마다 구분선 그리기
@@ -609,5 +589,50 @@ public partial class MainWindow : Window
         }
     }
 
+    #endregion
+
+    #region 메모 관련 코드
+    private void Window_Loaded(object sender, RoutedEventArgs e)
+    {
+        SetPlaceholder();
+    }
+
+    private void MainTab_SelectionChanged(object sender, SelectionChangedEventArgs e)
+    {
+        if (MainTab.SelectedIndex == 3)
+            SetPlaceholder();
+    }
+
+    private void ViewModel_PropertyChanged(object sender, PropertyChangedEventArgs e)
+    {
+        if (e.PropertyName == nameof(PlanMate.ViewModels.MainViewModel.SelectedMemo))
+        {
+            MainTab.SelectedIndex = 3;
+            TitleBox.Focus();
+            Placeholder.Visibility = Visibility.Collapsed;
+        }
+    }
+
+    private void MemoListBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
+    {
+        SetPlaceholder();
+    }
+
+    private void ContentBox_GotFocus(object sender, RoutedEventArgs e)
+    {
+        Placeholder.Visibility = Visibility.Collapsed;
+    }
+
+    private void ContentBox_LostFocus(object sender, RoutedEventArgs e)
+    {
+        SetPlaceholder();
+    }
+
+    private void SetPlaceholder()
+    {
+        Placeholder.Visibility = string.IsNullOrWhiteSpace(ContentBox.Text)
+                                  ? Visibility.Visible
+                                  : Visibility.Collapsed;
+    }
     #endregion
 }
