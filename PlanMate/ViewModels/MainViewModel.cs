@@ -15,25 +15,31 @@ using System.Windows.Media.Imaging;
 using PlanMate.Views;
 using System.Diagnostics;
 using System.Windows.Threading;
+using PlanMate.ViewModels;
+using PlanMate;
+using System.Linq; // .First()와 같은 LINQ 메서드 사용을 위해 추가
 
 
 namespace PlanMate.ViewModels
 {
     public class MainViewModel : INotifyPropertyChanged
     {
-
+        // --- 속성 및 필드 선언 ---
 
         public ObservableCollection<TaskItem> TaskList { get; } = new();
         public ICommand DeleteTaskCommand { get; }
+
+        // JsonFileName은 한 번만 선언합니다.
         private const string JsonFileName = "schedules.json";
 
-        // 커맨드
+        // AddScheduleCommand는 한 번만 선언합니다.
         public ICommand AddScheduleCommand { get; }
+        public ICommand AddMemoCommand { get; }
+        public ICommand RemoveMemoCommand { get; }
 
         public event PropertyChangedEventHandler PropertyChanged;
         protected void OnPropertyChanged(string name)
             => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
-
 
         public string CurrentDate => DateTime.Now.ToString("yyyy/MM/dd");
 
@@ -61,17 +67,14 @@ namespace PlanMate.ViewModels
         #endregion
 
         #region 시간표
-        private const string JsonFileName = "schedules.json";
-
         // 시간축 레이블: 0:00 ~ 23:00
         public ObservableCollection<string> TimeLabels { get; }
             = new ObservableCollection<string>(
                 Enumerable.Range(0, 24).Select(i => $"{i:00}:00"));
 
         // 시간표 아이템 컬렉션 추가
-        public ObservableCollection<ScheduleItem> ScheduleItems { get; } 
+        public ObservableCollection<ScheduleItem> ScheduleItems { get; }
             = new ObservableCollection<ScheduleItem>();
-
         #endregion
 
         #region 날씨
@@ -103,27 +106,6 @@ namespace PlanMate.ViewModels
         private readonly DispatcherTimer _timer;
         #endregion
 
-        // 커맨드
-        public ICommand AddScheduleCommand { get; }
-        public ICommand AddMemoCommand { get; }
-        public ICommand RemoveMemoCommand { get; }
-
-        public MainViewModel()
-        {
-            #region 시간표
-            // JSON 파일에서 기존 일정 로드(있는 경우)
-            LoadFromJson();
-            DeleteTaskCommand = new RelayCommand(DeleteTask, obj => obj is TaskItem);
-            // 컬렉션 변경 시 자동 저장
-            ScheduleItems.CollectionChanged += (s, e) => SaveToJson();
-
-            // ＋ 버튼에 바인딩할 커맨드
-            AddScheduleCommand = new RelayCommand(
-                _ => OnAddSchedule(),
-                _ => true
-            );
-
-        }
         #region 배경색 관련 속성 및 메서드
 
         private Brush _mainBackground = Brushes.LightGray;
@@ -148,23 +130,21 @@ namespace PlanMate.ViewModels
                 MessageBox.Show($"'{color}'는 유효한 색상명이 아닙니다.", "오류", MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
-
         #endregion
-        private void DeleteTask(object obj)
+
+        // --- 생성자 ---
+        public MainViewModel()
         {
-            if (obj is TaskItem task)
-            {
-                if (MessageBox.Show($"{task.Name} 일정을 삭제하시겠습니까?", "확인", MessageBoxButton.YesNo) == MessageBoxResult.Yes)
-                {
-                    TaskList.Remove(task);
-                    // 예시: TaskList 저장 로직 필요시 추가
-                }
-            }
-        }
+            // --- 시간표 관련 초기화 ---
+            LoadFromJson();
+            DeleteTaskCommand = new RelayCommand(DeleteTask, obj => obj is TaskItem);
+            ScheduleItems.CollectionChanged += (s, e) => SaveToJson();
+            AddScheduleCommand = new RelayCommand(
+                _ => OnAddSchedule(),
+                _ => true
+            );
 
-            #endregion
-
-            #region 메모
+            // --- 메모 관련 초기화 ---
             _memoStorageService = new JsonStorageService(MemoJsonFileName);
             var saved = _memoStorageService.LoadMemos();
             foreach (var memo in saved)
@@ -177,19 +157,29 @@ namespace PlanMate.ViewModels
 
             AddMemoCommand = new RelayCommand(_ => AddMemo());
             RemoveMemoCommand = new RelayCommand(_ => RemoveMemo(), _ => SelectedMemo != null);
-            #endregion
 
-
-            #region 날씨
+            // --- 날씨 관련 초기화 ---
             _weatherService = new WeatherService();
             ShowForecastCommand = new RelayCommand(_ => LoadAndShowForecast());
 
-            // 초기 날씨 로드 및 10분 간격 갱신
             LoadWeatherAsync();
             _timer = new DispatcherTimer { Interval = TimeSpan.FromMinutes(10) };
             _timer.Tick += async (_, __) => await LoadWeatherAsync();
             _timer.Start();
-            #endregion
+        }
+
+        // --- 메서드 ---
+
+        private void DeleteTask(object obj)
+        {
+            if (obj is TaskItem task)
+            {
+                if (MessageBox.Show($"{task.Name} 일정을 삭제하시겠습니까?", "확인", MessageBoxButton.YesNo) == MessageBoxResult.Yes)
+                {
+                    TaskList.Remove(task);
+                    // 예시: TaskList 저장 로직 필요시 추가
+                }
+            }
         }
 
         #region 시간표 기능
@@ -256,7 +246,6 @@ namespace PlanMate.ViewModels
                 ScheduleItems.Add(dlgVm.NewItem);
             }
         }
-
         #endregion
 
         #region 메모 기능

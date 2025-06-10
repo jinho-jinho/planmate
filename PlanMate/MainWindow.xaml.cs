@@ -248,6 +248,8 @@ public MainViewModel ViewModel => viewModel;
 
             SaveWindowSettings();
         }
+        if (MainTab.SelectedIndex == 3)
+            SetPlaceholder();
     }
 
 
@@ -815,11 +817,10 @@ public MainViewModel ViewModel => viewModel;
         SetPlaceholder();
     }
 
-    private void MainTab_SelectionChanged(object sender, SelectionChangedEventArgs e)
-    {
-        if (MainTab.SelectedIndex == 3)
-            SetPlaceholder();
-    }
+    //private void MainTab_SelectionChanged(object sender, SelectionChangedEventArgs e)
+    //{
+        
+    //}
 
     private void ViewModel_PropertyChanged(object sender, PropertyChangedEventArgs e)
     {
