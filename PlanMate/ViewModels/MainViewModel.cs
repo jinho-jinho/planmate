@@ -7,6 +7,7 @@ using System.Windows.Input;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using PlanMate.Models;
+using System.Windows.Media;
 using PlanMate.Services;
 using System.Collections.Specialized;
 using System.Runtime.CompilerServices;
@@ -15,13 +16,24 @@ using PlanMate.Views;
 using System.Diagnostics;
 using System.Windows.Threading;
 
+
 namespace PlanMate.ViewModels
 {
     public class MainViewModel : INotifyPropertyChanged
     {
+
+
+        public ObservableCollection<TaskItem> TaskList { get; } = new();
+        public ICommand DeleteTaskCommand { get; }
+        private const string JsonFileName = "schedules.json";
+
+        // 커맨드
+        public ICommand AddScheduleCommand { get; }
+
         public event PropertyChangedEventHandler PropertyChanged;
         protected void OnPropertyChanged(string name)
             => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
+
 
         public string CurrentDate => DateTime.Now.ToString("yyyy/MM/dd");
 
@@ -101,7 +113,7 @@ namespace PlanMate.ViewModels
             #region 시간표
             // JSON 파일에서 기존 일정 로드(있는 경우)
             LoadFromJson();
-
+            DeleteTaskCommand = new RelayCommand(DeleteTask, obj => obj is TaskItem);
             // 컬렉션 변경 시 자동 저장
             ScheduleItems.CollectionChanged += (s, e) => SaveToJson();
 
@@ -110,6 +122,46 @@ namespace PlanMate.ViewModels
                 _ => OnAddSchedule(),
                 _ => true
             );
+
+        }
+        #region 배경색 관련 속성 및 메서드
+
+        private Brush _mainBackground = Brushes.LightGray;
+        public Brush MainBackground
+        {
+            get => _mainBackground;
+            set
+            {
+                _mainBackground = value;
+                OnPropertyChanged(nameof(MainBackground));
+            }
+        }
+
+        public void ChangeBackground(string color)
+        {
+            try
+            {
+                MainBackground = (Brush)new BrushConverter().ConvertFromString(color);
+            }
+            catch
+            {
+                MessageBox.Show($"'{color}'는 유효한 색상명이 아닙니다.", "오류", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+        }
+
+        #endregion
+        private void DeleteTask(object obj)
+        {
+            if (obj is TaskItem task)
+            {
+                if (MessageBox.Show($"{task.Name} 일정을 삭제하시겠습니까?", "확인", MessageBoxButton.YesNo) == MessageBoxResult.Yes)
+                {
+                    TaskList.Remove(task);
+                    // 예시: TaskList 저장 로직 필요시 추가
+                }
+            }
+        }
+
             #endregion
 
             #region 메모
@@ -126,6 +178,7 @@ namespace PlanMate.ViewModels
             AddMemoCommand = new RelayCommand(_ => AddMemo());
             RemoveMemoCommand = new RelayCommand(_ => RemoveMemo(), _ => SelectedMemo != null);
             #endregion
+
 
             #region 날씨
             _weatherService = new WeatherService();

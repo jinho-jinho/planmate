@@ -22,7 +22,7 @@ namespace PlanMate.Models
         }
 
         private TimeSpan _startTime;
-        public TimeSpan StartTime
+        public TimeSpan StartTime   
         {
             get => _startTime;
             set
