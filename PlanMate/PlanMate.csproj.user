@@ -11,6 +11,9 @@
     <Compile Update="Views\DayTaskWindow.xaml.cs">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Update="Views\ForecastWindow.xaml.cs">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Update="Views\ScheduleDialog.xaml.cs">
       <SubType>Code</SubType>
     </Compile>
