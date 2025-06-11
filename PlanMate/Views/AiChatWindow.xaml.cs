@@ -15,13 +15,18 @@ namespace PlanMate.Views
     {
         private readonly GeminiApiService _geminiService;
         private readonly List<TaskItem> taskList;
+        private readonly List<MemoItem> memoList;
+        private readonly List<ScheduleItem> scheduleList;
+
         private ObservableCollection<ChatMessage> chatMessages = new();
 
-        public AiChatWindow(List<TaskItem> taskItems)
+        public AiChatWindow(List<TaskItem> taskItems, List<MemoItem> memos, List<ScheduleItem> schedules)
         {
             InitializeComponent();
             _geminiService = new GeminiApiService();
             taskList = taskItems;
+            memoList = memos;
+            scheduleList = schedules;
 
             ChatList.ItemsSource = chatMessages;
         }
@@ -33,10 +38,9 @@ namespace PlanMate.Views
                 EmptyHintPanel.Visibility = Visibility.Collapsed;
                 ChatList.Visibility = Visibility.Visible;
             }
-            // 모든 입력 UI 잠금
+
             UserInputBox.IsEnabled = false;
             SendButton.IsEnabled = false;
-            ExampleButtonPanel.IsEnabled = false;
 
             chatMessages.Add(new ChatMessage { Role = "User", Message = message });
             chatMessages.Add(new ChatMessage { Role = "Bot", Message = "..." });
@@ -44,21 +48,23 @@ namespace PlanMate.Views
 
             string aiResponse;
 
-            if (message.Contains("요약"))
-                aiResponse = await _geminiService.GetScheduleSummaryAsync(taskList, message);
-            else if (message.Contains("조언"))
-                aiResponse = await _geminiService.GetScheduleSummaryAsync(taskList, message);
+            // 🔍 키워드 포함 여부에 따라 조건 분기
+            if (message.Contains("일정") || message.Contains("시간표") || message.Contains("메모") ||
+                message.Contains("요약") || message.Contains("조언"))
+            {
+                aiResponse = await _geminiService.GetSmartSummaryAsync(taskList, memoList, scheduleList, message);
+            }
             else
+            {
                 aiResponse = await _geminiService.GetResponseAsync(message);
+            }
 
             chatMessages.RemoveAt(chatMessages.Count - 1);
             chatMessages.Add(new ChatMessage { Role = "Bot", Message = aiResponse });
             ScrollToBottom();
 
-            // 입력 UI 다시 활성화
             UserInputBox.IsEnabled = true;
             SendButton.IsEnabled = true;
-            ExampleButtonPanel.IsEnabled = true;
             UserInputBox.Focus();
         }
 
@@ -67,7 +73,7 @@ namespace PlanMate.Views
             if (e.Key == System.Windows.Input.Key.Enter && SendButton.IsEnabled)
             {
                 SendButton_Click(null, null);
-                e.Handled = true; // 엔터가 줄바꿈으로 처리되지 않도록 막기
+                e.Handled = true;
             }
         }
 
@@ -78,7 +84,7 @@ namespace PlanMate.Views
                 var scrollViewer = FindVisualChild<ScrollViewer>(ChatList);
                 if (scrollViewer != null)
                 {
-                    scrollViewer.ScrollToBottom();  // ← ScrollToEnd 보다 안전
+                    scrollViewer.ScrollToBottom();
                 }
             }, System.Windows.Threading.DispatcherPriority.Background);
         }
@@ -98,8 +104,6 @@ namespace PlanMate.Views
             return null;
         }
 
-
-
         private void MessageBlock_Loaded(object sender, RoutedEventArgs e)
         {
             if (sender is TextBlock textBlock &&
@@ -108,7 +112,8 @@ namespace PlanMate.Views
                 ApplyBoldMarkdown(textBlock, message.Message);
             }
         }
-        private void ApplyBoldMarkdown(TextBlock textBlock, string rawText) 
+
+        private void ApplyBoldMarkdown(TextBlock textBlock, string rawText)
         {
             textBlock.Inlines.Clear();
 

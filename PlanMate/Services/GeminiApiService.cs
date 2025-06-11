@@ -4,7 +4,6 @@ using System.Linq;
 using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
-using System.Xml;
 using Newtonsoft.Json;
 using PlanMate.Models;
 
@@ -14,7 +13,7 @@ namespace PlanMate.Services
     {
         private readonly HttpClient _httpClient;
         private const string ApiUrl = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent";
-        private const string ApiKey = "AIzaSyBSp8l09lNLK_KUJQsw6NOPTIeicMB1t08";
+        private const string ApiKey = "AIzaSyBSp8l09lNLK_KUJQsw6NOPTIeicMB1t08"; //무료 키임 사용 ㄴㄴ 
 
         public GeminiApiService()
         {
@@ -25,8 +24,7 @@ namespace PlanMate.Services
         {
             var requestData = new
             {
-                contents = new[]
-                {
+                contents = new[] {
                     new { parts = new[] { new { text = userPrompt } } }
                 }
             };
@@ -40,9 +38,7 @@ namespace PlanMate.Services
                 var responseJson = await response.Content.ReadAsStringAsync();
 
                 if (!response.IsSuccessStatusCode)
-                {
                     return $"Error {response.StatusCode}: {responseJson}";
-                }
 
                 dynamic result = JsonConvert.DeserializeObject(responseJson);
                 return result?.candidates?[0]?.content?.parts?[0]?.text ?? "No response";
@@ -53,33 +49,69 @@ namespace PlanMate.Services
             }
         }
 
-        public async Task<string> GetScheduleSummaryAsync(List<TaskItem> scheduleList, string userInstruction)
+        public async Task<string> GetSmartSummaryAsync(
+            List<TaskItem> taskList,
+            List<MemoItem> memoList,
+            List<ScheduleItem> scheduleList,
+            string userInstruction)
         {
-            var minimalSchedule = scheduleList.Select(task => new
+            var sb = new StringBuilder();
+            sb.AppendLine("당신은 사용자 일정/시간표/메모를 도와주는 AI 비서입니다.");
+            sb.AppendLine("요청에 따라 아래 JSON 데이터를 참고하여 요약 또는 조언을 생성하세요.");
+            sb.AppendLine();
+            sb.AppendLine($"사용자 요청: {userInstruction}");
+            sb.AppendLine();
+
+            if (userInstruction.Contains("일정"))
             {
-                title = task.Name,
-                startDate = task.StartDate.ToString("yyyy-MM-dd"),
-                startTime = task.StartTime,
-                endDate = task.EndDate.ToString("yyyy-MM-dd"),
-                endTime = task.EndTime,
-                importance = task.Importance,
-                details = task.Details,
-                isCompleted = task.IsCompleted
-            }).ToList();
+                var minimalTasks = taskList.Select(task => new
+                {
+                    title = task.Name,
+                    startDate = task.StartDate.ToString("yyyy-MM-dd"),
+                    startTime = task.StartTime,
+                    endDate = task.EndDate.ToString("yyyy-MM-dd"),
+                    endTime = task.EndTime,
+                    importance = task.Importance,
+                    details = task.Details,
+                    isCompleted = task.IsCompleted,
+                    relatedDocs = task.RelatedDocs
+                }).ToList();
 
-            string jsonSchedule = JsonConvert.SerializeObject(minimalSchedule, Newtonsoft.Json.Formatting.Indented);
+                sb.AppendLine("일정 목록 (tasks):");
+                sb.AppendLine(JsonConvert.SerializeObject(minimalTasks, Formatting.Indented));
+                sb.AppendLine();
+            }
 
-            string prompt = $@"
-                다음은 사용자의 일정 목록입니다. 각 일정에는 제목, 시작일/시간, 종료일/시간, 중요도, 설명, 완료 여부가 포함되어 있습니다.
+            if (userInstruction.Contains("시간표"))
+            {
+                var minimalSchedules = scheduleList.Select(s => new
+                {
+                    day = s.Day.ToString(), // e.g., "Monday"
+                    startTime = s.StartTime.ToString(@"hh\:mm"),
+                    endTime = s.EndTime.ToString(@"hh\:mm"),
+                    title = s.Title
+                }).ToList();
 
-                당신의 임무는 다음 사용자 요청을 바탕으로 응답을 생성하는 것입니다:
-                - 사용자 요청: {userInstruction}
+                sb.AppendLine("시간표 목록 (schedules):");
+                sb.AppendLine(JsonConvert.SerializeObject(minimalSchedules, Formatting.Indented));
+                sb.AppendLine();
+            }
 
-                일정 목록 (JSON):
-                {jsonSchedule}
-                ";
+            if (userInstruction.Contains("메모"))
+            {
+                var minimalMemos = memoList.Select(m => new
+                {
+                    title = m.Title,
+                    content = m.Content,
+                    createdAt = m.CreatedAt.ToString("yyyy-MM-dd HH:mm")
+                }).ToList();
 
-            return await GetResponseAsync(prompt);
+                sb.AppendLine("메모 목록 (memos):");
+                sb.AppendLine(JsonConvert.SerializeObject(minimalMemos, Formatting.Indented));
+                sb.AppendLine();
+            }
+
+            return await GetResponseAsync(sb.ToString());
         }
     }
 }

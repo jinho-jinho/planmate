@@ -19,61 +19,60 @@
 
         <!-- 🟦 채팅 없을 때 안내 영역 -->
         <StackPanel x:Name="EmptyHintPanel"
-                Grid.Row="0"
-                VerticalAlignment="Center"
-                HorizontalAlignment="Center"
-                Visibility="Visible">
+                    Grid.Row="0"
+                    VerticalAlignment="Center"
+                    HorizontalAlignment="Center"
+                    Visibility="Visible">
             <Image Source="/Resources/ai_logo.png" Width="120" Height="120" Margin="0,0,0,10"/>
-            <TextBlock Text="AI 비서에게 일정 요약이나 조언을 받아보세요!"
-                   FontSize="16"
-                   FontWeight="SemiBold"
-                   Foreground="Gray"
-                   TextAlignment="Center"/>
+            <TextBlock Text="AI 비서"
+                       FontSize="20"
+                       FontWeight="SemiBold"
+                       Foreground="Gray"
+                       TextAlignment="Center"/>
+            <TextBlock Text="일정, 시간표, 메모를 바탕으로 요약이나 조언을 받아보세요!"
+                       FontSize="13"
+                       FontWeight="SemiBold"
+                       Foreground="Gray"
+                       TextAlignment="Center"/>
+            <TextBlock Text="❗&quot;일정&quot;, &quot;시간표&quot;, &quot;메모&quot; 키워드를 포함해 보세요."
+                       FontSize="13"
+                       FontWeight="SemiBold"
+                       Foreground="Gray"
+                       TextAlignment="Center"/>
         </StackPanel>
 
         <!-- 💬 채팅 메시지 영역 -->
         <ListBox x:Name="ChatList"
-             Grid.Row="0"
-             Margin="0,0,0,10"
-             ItemsSource="{Binding}"
-             Background="Transparent"
-             BorderThickness="0"
-             ScrollViewer.VerticalScrollBarVisibility="Auto"
-             ScrollViewer.HorizontalScrollBarVisibility="Disabled"
-             ScrollViewer.CanContentScroll="False"
-             VirtualizingStackPanel.IsVirtualizing="False"
-             HorizontalContentAlignment="Stretch"
-             Visibility="Collapsed">
-            <!-- 처음에는 숨김 -->
-
+                 Grid.Row="0"
+                 Margin="0,0,0,10"
+                 ItemsSource="{Binding}"
+                 Background="Transparent"
+                 BorderThickness="0"
+                 ScrollViewer.VerticalScrollBarVisibility="Auto"
+                 ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+                 ScrollViewer.CanContentScroll="False"
+                 VirtualizingStackPanel.IsVirtualizing="False"
+                 HorizontalContentAlignment="Stretch"
+                 Visibility="Collapsed">
             <ListBox.ItemTemplate>
                 <DataTemplate DataType="{x:Type models:ChatMessage}">
                     <Border Background="{Binding Role, Converter={StaticResource RoleToColorConverter}}"
-                        Padding="10"
-                        CornerRadius="10"
-                        Margin="5"
-                        HorizontalAlignment="Stretch">
+                            Padding="10"
+                            CornerRadius="10"
+                            Margin="5"
+                            HorizontalAlignment="Stretch">
                         <TextBlock x:Name="MessageBlock"
-                               Text="{Binding Message}"
-                               TextWrapping="Wrap"
-                               Foreground="White"
-                               FontSize="14"
-                               Loaded="MessageBlock_Loaded"
-                               HorizontalAlignment="Stretch"/>
+                                   Text="{Binding Message}"
+                                   TextWrapping="Wrap"
+                                   Foreground="White"
+                                   FontSize="14"
+                                   Loaded="MessageBlock_Loaded"
+                                   HorizontalAlignment="Stretch"/>
                     </Border>
                 </DataTemplate>
             </ListBox.ItemTemplate>
         </ListBox>
 
-        <!-- 예시 버튼 -->
-        <StackPanel x:Name="ExampleButtonPanel"
-                    Grid.Row="1"
-                    Orientation="Horizontal"
-                    HorizontalAlignment="Left"
-                    Margin="0,0,0,10">
-            <Button Content="일정 요약 해줘." Margin="5" Click="ExampleButton_Click"/>
-            <Button Content="일정 조언 해줘." Margin="5" Click="ExampleButton_Click"/>
-        </StackPanel>
 
         <!-- 입력 영역 -->
         <Grid Grid.Row="2">
@@ -86,7 +85,8 @@
                      Grid.Column="0"
                      Margin="0,0,10,0"
                      KeyDown="UserInputBox_KeyDown"
-                     FontSize="14" />
+                     FontSize="14"
+                     ToolTip="❗: &quot;일정&quot;, &quot;시간표&quot;, &quot;메모&quot; 키워드를 포함해 보세요." />
 
             <Button x:Name="SendButton"
                     Grid.Column="1"
