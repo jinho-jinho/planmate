@@ -113,5 +113,88 @@ namespace PlanMate.Services
 
             return await GetResponseAsync(sb.ToString());
         }
+        public async Task<string> GenerateTaskFromMessageAsync(string userRequest)
+        {
+            string today = DateTime.Today.ToString("yyyy-MM-dd");
+
+            string prompt = $@"
+                오늘 날짜는 {today}야.
+                너는 일정 관리 앱의 AI야.
+                사용자의 요청을 아래 형식의 JSON 일정으로 변환해 줘.
+
+                사용자 요청: ""{userRequest}""
+
+                다음 JSON 형식으로 응답해:
+
+                {{
+                  ""Name"": ""회의 제목"",
+                  ""Details"": ""회의에 대한 설명"",
+                  ""StartDate"": ""2025-06-14T00:00:00"",
+                  ""StartTime"": ""14:00"",
+                  ""EndDate"": ""2025-06-14T00:00:00"",
+                  ""EndTime"": ""15:00"",
+                  ""Importance"": ""상"",
+                  ""IsCompleted"": false,
+                  ""RelatedDocs"": []
+                }}
+
+                설명 없이 JSON만 출력해 줘. 백틱(```)이나 코드블록 없이, 순수 JSON만 줘.
+                날짜는 반드시 yyyy-MM-ddTHH:mm:ss 형식으로, 시간은 HH:mm 형식의 문자열로 출력해 줘.
+                ";
+
+            return await GetResponseAsync(prompt);
+        }
+        public async Task<string> GenerateMemoFromMessageAsync(string userRequest)
+        {
+            string today = DateTime.Today.ToString("yyyy-MM-dd HH:mm");
+
+            string prompt = $@"
+                오늘은 {today}야.
+                너는 메모 앱의 AI야.
+                사용자의 요청을 아래 JSON 메모 형식으로 변환해 줘.
+
+                사용자 요청: ""{userRequest}""
+
+                다음 JSON 형식으로 응답해:
+
+                {{
+                  ""Title"": ""메모 제목"",
+                  ""Content"": ""메모 내용"",
+                  ""CreatedAt"": ""2025-06-14T14:30:00""
+                }}
+
+                설명 없이 JSON만 출력해 줘. 백틱(```)이나 코드블록 없이, 순수 JSON만 줘.
+                CreatedAt은 반드시 yyyy-MM-ddTHH:mm:ss 형식으로 출력해 줘.
+                ";
+
+            return await GetResponseAsync(prompt);
+        }
+        public async Task<string> GenerateScheduleFromMessageAsync(string userRequest)
+        {
+            string today = DateTime.Today.ToString("yyyy-MM-dd");
+
+            string prompt = $@"
+                오늘 날짜는 {today}야.
+                너는 시간표 관리 앱의 AI야.
+                사용자의 요청을 아래 JSON 시간표 형식으로 변환해 줘.
+
+                사용자 요청: ""{userRequest}""
+
+                다음 JSON 형식으로 응답해:
+
+                {{
+                  ""Day"": ""Monday"",
+                  ""StartTime"": ""09:00"",
+                  ""EndTime"": ""10:30"",
+                  ""Title"": ""수업 또는 일정 제목""
+                }}
+
+                설명 없이 JSON만 출력해 줘. 백틱(```)이나 코드블록 없이, 순수 JSON만 줘.
+                요일은 반드시 Monday, Tuesday와 같은 영어 요일로 줘.
+                시간은 HH:mm 형식의 문자열로 줘.
+                ";
+
+            return await GetResponseAsync(prompt);
+        }
     }
 }

@@ -39,6 +39,28 @@
                        FontWeight="SemiBold"
                        Foreground="Gray"
                        TextAlignment="Center"/>
+            <TextBlock Text="❗ 생성을 위한  &quot;만들어&quot;, &quot;생성&quot;, &quot;추가&quot;, &quot;등록&quot; 키워드" 
+                       FontSize="13"
+                       TextWrapping="Wrap"
+                       FontWeight="SemiBold"
+                       Foreground="Gray"
+                       TextAlignment="Center"/>
+            <TextBlock Text="예 : 일정 조언해줘. 내일 윈도우즈 시험 일정 추가해줘." 
+                       FontSize="10"
+                       FontWeight="SemiBold"
+                       Foreground="Gray"
+                       Margin="0,40,0,0"
+                       TextAlignment="Center"/>
+            <TextBlock Text="예 : 시간표 확인해서 내일 브리핑해줘. 목요일 10:00~12:00 윈도우즈 수업 추가해줘." 
+                       FontSize="10"
+                       FontWeight="SemiBold"
+                       Foreground="Gray"
+                       TextAlignment="Center"/>
+            <TextBlock Text="예 : 메모 요약해줘. 메모 생성해서 내용으로 ~추가해줘." 
+                       FontSize="10"
+                       FontWeight="SemiBold"
+                       Foreground="Gray"
+                       TextAlignment="Center"/>
         </StackPanel>
 
         <!-- 💬 채팅 메시지 영역 -->
@@ -89,10 +111,26 @@
                      ToolTip="❗: &quot;일정&quot;, &quot;시간표&quot;, &quot;메모&quot; 키워드를 포함해 보세요." />
 
             <Button x:Name="SendButton"
-                    Grid.Column="1"
-                    Content="전송"
-                    Width="80"
-                    Click="SendButton_Click"/>
+            Grid.Column="1"
+            Content="전송"
+            Width="80"
+            Height="25"
+            Background="WhiteSmoke"
+            Click="SendButton_Click">
+                <Button.Template>
+                    <ControlTemplate TargetType="Button">
+                        <Border Background="{TemplateBinding Background}"
+                        BorderBrush="{TemplateBinding BorderBrush}"
+                        BorderThickness="{TemplateBinding BorderThickness}"
+                        CornerRadius="10"
+                        Padding="{TemplateBinding Padding}">
+                            <ContentPresenter HorizontalAlignment="Center"
+                                      VerticalAlignment="Center"/>
+                        </Border>
+                    </ControlTemplate>
+                </Button.Template>
+            </Button>   
+
         </Grid>
     </Grid>
 </Window>

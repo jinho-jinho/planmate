@@ -355,7 +355,8 @@
                                                      Background="White"
                                                      Foreground="Black"
                                                      GotFocus="ContentBox_GotFocus"
-                                                     LostFocus="ContentBox_LostFocus"/>
+                                                     LostFocus="ContentBox_LostFocus"
+                                                     TextWrapping="Wrap"/>
 
                                             <TextBlock x:Name="Placeholder"
                                                        Text="내용 입력"
@@ -370,6 +371,7 @@
                                                         Margin="0,0,10,10">
                                                 <Button Content="🗑️"
                                                         Width="30" Height="30"
+                                                        Background="Transparent"
                                                         Command="{Binding RemoveMemoCommand}"
                                                         ToolTip="메모 삭제"
                                                         Margin="5,0,0,0"/>
@@ -425,7 +427,7 @@
                             </ControlTemplate>
                         </Button.Template>
                         <Button.Content>
-                            <TextBlock Text="✨" FontSize="20" FontWeight="Bold" Foreground="Gray"/>
+                            <TextBlock Text="✨" FontSize="20" FontWeight="Bold" Foreground="Black"/>
                         </Button.Content>
                     </Button>
 
@@ -508,7 +510,7 @@
                             </ControlTemplate>
                         </Button.Template>
                         <Button.Content>
-                            <TextBlock Text="＋" FontSize="24" FontWeight="Bold" Foreground="Gray"/>
+                            <TextBlock Text="＋" FontSize="24" FontWeight="Bold" Foreground="Black"/>
                         </Button.Content>
                     </Button>
 

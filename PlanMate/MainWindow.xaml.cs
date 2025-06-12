@@ -297,11 +297,26 @@ public MainViewModel ViewModel => viewModel;
         var memoListForAi = ViewModel.Memos.ToList();
         var scheduleListForAi = ViewModel.ScheduleItems.ToList();
 
-        var chatWindow = new AiChatWindow(taskListForAi, memoListForAi, scheduleListForAi)
+        var chatWindow = new AiChatWindow(
+                taskList,                            // ✅ MainWindow의 필드 taskList
+                ViewModel.Memos,                     // ✅ ViewModel의 바인딩된 메모
+                ViewModel.ScheduleItems,            // ✅ ViewModel의 바인딩된 스케줄
+                SaveTasks,                           // ✅ 반드시 MainWindow의 SaveTasks 메서드
+                //SaveMemos,
+                SaveSchedules,
+                () =>
+                {
+                    RefreshTaskList();
+                    GenerateCalendar();
+                }
+            )
         {
             Owner = this,
             Top = this.Top
         };
+
+        chatWindow.Show();
+
 
         double screenWidth = SystemParameters.WorkArea.Width;
         chatWindow.Left = (this.Left + this.Width + chatWindow.Width <= screenWidth)
@@ -488,7 +503,11 @@ public MainViewModel ViewModel => viewModel;
                 var json = File.ReadAllText(savePath);
                 var loaded = JsonSerializer.Deserialize<ObservableCollection<TaskItem>>(json);
                 if (loaded != null)
-                    taskList = loaded;
+                {
+                    taskList.Clear();
+                    foreach (var item in loaded)
+                        taskList.Add(item);  // 🟢 기존 taskList에 추가
+                }
             }
         }
         catch (Exception ex)
@@ -721,6 +740,7 @@ public MainViewModel ViewModel => viewModel;
             if (result == true && dlgVm.NewItem != null)
             {
                 viewModel.ScheduleItems.Add(dlgVm.NewItem);
+                SaveSchedules();
             }
         }
         finally
