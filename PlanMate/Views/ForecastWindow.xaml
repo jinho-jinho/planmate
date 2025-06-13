@@ -27,7 +27,7 @@
                 <TextBlock Text="{Binding Temperature}"
                            FontSize="36" FontWeight="UltraLight"/>
                 <TextBlock Text="{Binding WeatherDescription}"
-                           FontSize="14" FontStyle="Italic"/>
+                           FontSize="14"/>
             </StackPanel>
         </StackPanel>
 
