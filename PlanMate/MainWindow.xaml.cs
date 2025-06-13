@@ -293,27 +293,39 @@ public MainViewModel ViewModel => viewModel;
     #region ai 관련 코드
     private void AiButton_Click(object sender, RoutedEventArgs e)
     {
-        var taskListForAi = taskList.ToList(); // List<TaskItem>로 변환
-        var chatWindow = new AiChatWindow(taskListForAi)
+        var taskListForAi = taskList.ToList();
+        var memoListForAi = ViewModel.Memos.ToList();
+        var scheduleListForAi = ViewModel.ScheduleItems.ToList();
+
+        var chatWindow = new AiChatWindow(
+                taskList,                            // ✅ MainWindow의 필드 taskList
+                ViewModel.Memos,                     // ✅ ViewModel의 바인딩된 메모
+                ViewModel.ScheduleItems,            // ✅ ViewModel의 바인딩된 스케줄
+                SaveTasks,                           // ✅ 반드시 MainWindow의 SaveTasks 메서드
+                //SaveMemos,
+                SaveSchedules,
+                () =>
+                {
+                    RefreshTaskList();
+                    GenerateCalendar();
+                }
+            )
         {
-            Owner = this, // 소유자 설정 (닫을 때 같이 닫히도록)
-            Top = this.Top // 세로 위치 맞춤
+            Owner = this,
+            Top = this.Top
         };
 
-        double screenWidth = SystemParameters.WorkArea.Width;
+        chatWindow.Show();
 
-        // 오른쪽에 여유 공간이 있으면 오른쪽에, 아니면 왼쪽에 띄움
-        if (this.Left + this.Width + chatWindow.Width <= screenWidth)
-        {
-            chatWindow.Left = this.Left + this.Width;
-        }
-        else
-        {
-            chatWindow.Left = this.Left - chatWindow.Width;
-        }
+
+        double screenWidth = SystemParameters.WorkArea.Width;
+        chatWindow.Left = (this.Left + this.Width + chatWindow.Width <= screenWidth)
+            ? this.Left + this.Width
+            : this.Left - chatWindow.Width;
 
         chatWindow.Show();
     }
+
 
     #endregion
 
@@ -491,7 +503,11 @@ public MainViewModel ViewModel => viewModel;
                 var json = File.ReadAllText(savePath);
                 var loaded = JsonSerializer.Deserialize<ObservableCollection<TaskItem>>(json);
                 if (loaded != null)
-                    taskList = loaded;
+                {
+                    taskList.Clear();
+                    foreach (var item in loaded)
+                        taskList.Add(item);  // 🟢 기존 taskList에 추가
+                }
             }
         }
         catch (Exception ex)
@@ -724,6 +740,7 @@ public MainViewModel ViewModel => viewModel;
             if (result == true && dlgVm.NewItem != null)
             {
                 viewModel.ScheduleItems.Add(dlgVm.NewItem);
+                SaveSchedules();
             }
         }
         finally
@@ -853,5 +870,20 @@ public MainViewModel ViewModel => viewModel;
                                   ? Visibility.Visible
                                   : Visibility.Collapsed;
     }
+
+    private bool isListVisible = true;
+
+    private void ToggleListPanel_Click(object sender, RoutedEventArgs e)
+    {
+        isListVisible = !isListVisible;
+
+        LeftColumn.Width = isListVisible ? new GridLength(150) : new GridLength(0);
+        ToggleButton.Content = isListVisible ? "◀" : "▶";
+        ToggleButton.Margin = isListVisible
+            ? new Thickness(150, 10, 0, 0)  // 패널 보일 때 오른쪽에
+            : new Thickness(0, 10, 0, 0);   // 패널 숨겨질 때 왼쪽으로 이동
+    }
+
+
     #endregion
 }

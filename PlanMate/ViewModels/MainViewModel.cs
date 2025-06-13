@@ -30,7 +30,10 @@ namespace PlanMate.ViewModels
         public ICommand DeleteTaskCommand { get; }
 
         // JsonFileName은 한 번만 선언합니다.
-        private const string JsonFileName = "schedules.json";
+        private readonly string JsonFileName = Path.Combine(
+            Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+            "PlanMate",
+            "schedules.json");
 
         // AddScheduleCommand는 한 번만 선언합니다.
         public ICommand AddScheduleCommand { get; }

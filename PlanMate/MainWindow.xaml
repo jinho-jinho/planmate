@@ -73,7 +73,7 @@
                     </StackPanel>
 
                     <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
-                        <Button Content="🌤️" Command="{Binding ShowForecastCommand}" Width="30" Height="30" Margin="0,0,5,0"/>
+                        <Button Content="🌤️" Command="{Binding ShowForecastCommand}" Width="30" Height="30" Margin="0,0,5,0" Background="Transparent"/>
                     </StackPanel>
                 </Grid>
 
@@ -175,9 +175,9 @@
                                 </Grid.ColumnDefinitions>
 
                                 <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Grid.Column="1" VerticalAlignment="Top">
-                                    <Button Content="◀" Width="30" Click="OnPrevMonthClick"/>
+                                    <Button Content="◀" Width="30" Click="OnPrevMonthClick" Background="Transparent"/>
                                     <TextBlock x:Name="MonthTitle" FontSize="16" FontWeight="Bold" Margin="10,0"/>
-                                    <Button Content="▶" Width="30" Click="OnNextMonthClick"/>
+                                    <Button Content="▶" Width="30" Click="OnNextMonthClick" Background="Transparent"/>
                                 </StackPanel>
 
                                 <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Grid.Column="2" VerticalAlignment="Top">
@@ -193,7 +193,7 @@
                                                       DisplayModeChanged="MonthCalendar_DisplayModeChanged"/>
                                         </Border>
                                     </Popup>
-                                    <Button x:Name="OpenMonthPickerButton" Content="📅" Width="30" Click="OpenMonthPickerButton_Click"/>
+                                    <Button x:Name="OpenMonthPickerButton" Content="📅" Width="30" Click="OpenMonthPickerButton_Click" Background="Transparent"/>
                                 </StackPanel>
                             </Grid>
 
@@ -312,21 +312,22 @@
                     <TabItem Header="메 모" HeaderTemplate="{StaticResource TabHeaderTemplate}">
                         <Grid Margin="10">
                             <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="150"/>
-                                <ColumnDefinition/>
+                                <ColumnDefinition x:Name="LeftColumn" Width="150"/>
+                                <ColumnDefinition Width="*"/>
                             </Grid.ColumnDefinitions>
 
-                            <StackPanel Grid.Column="0">
+                            <!-- 왼쪽 패널 -->
+                            <Grid x:Name="LeftPanel" Grid.Column="0" Background="White">
                                 <ListBox x:Name="MemoListBox"
-                                         ItemsSource="{Binding Memos}"
-                                         SelectedItem="{Binding SelectedMemo}"
-                                         DisplayMemberPath="Title"
-                                         Height="600"
-                                         SelectionChanged="MemoListBox_SelectionChanged"/>
-                            </StackPanel>
+                                 ItemsSource="{Binding Memos}"
+                                 SelectedItem="{Binding SelectedMemo}"
+                                 DisplayMemberPath="Title"
+                                 ScrollViewer.VerticalScrollBarVisibility="Auto"
+                                 SelectionChanged="MemoListBox_SelectionChanged"/>
+                            </Grid>
 
-                            <Grid Grid.Column="1">
-                                <Border Background="LightYellow"
+                            <Grid Grid.Column="1" >
+                                <Border Background="{Binding MainBackground}"
                                         CornerRadius="5"
                                         Padding="10"
                                         Margin="10">
@@ -354,7 +355,8 @@
                                                      Background="White"
                                                      Foreground="Black"
                                                      GotFocus="ContentBox_GotFocus"
-                                                     LostFocus="ContentBox_LostFocus"/>
+                                                     LostFocus="ContentBox_LostFocus"
+                                                     TextWrapping="Wrap"/>
 
                                             <TextBlock x:Name="Placeholder"
                                                        Text="내용 입력"
@@ -369,6 +371,7 @@
                                                         Margin="0,0,10,10">
                                                 <Button Content="🗑️"
                                                         Width="30" Height="30"
+                                                        Background="Transparent"
                                                         Command="{Binding RemoveMemoCommand}"
                                                         ToolTip="메모 삭제"
                                                         Margin="5,0,0,0"/>
@@ -377,6 +380,16 @@
                                     </Grid>
                                 </Border>
                             </Grid>
+                            <Button x:Name="ToggleButton"
+                                Content="◀"
+                                Width="10" Height="50"
+                                VerticalAlignment="Top"
+                                HorizontalAlignment="Left"
+                                Click="ToggleListPanel_Click"
+                                Margin="150,10,0,0"
+                                Panel.ZIndex="1000"
+                                Grid.ColumnSpan="2"
+                                Background="Transparent"/>
                         </Grid>
                     </TabItem>
                 </TabControl>
@@ -414,7 +427,7 @@
                             </ControlTemplate>
                         </Button.Template>
                         <Button.Content>
-                            <TextBlock Text="✨" FontSize="20" FontWeight="Bold" Foreground="Gray"/>
+                            <TextBlock Text="✨" FontSize="20" FontWeight="Bold" Foreground="Black"/>
                         </Button.Content>
                     </Button>
 
@@ -497,7 +510,7 @@
                             </ControlTemplate>
                         </Button.Template>
                         <Button.Content>
-                            <TextBlock Text="＋" FontSize="24" FontWeight="Bold" Foreground="Gray"/>
+                            <TextBlock Text="＋" FontSize="24" FontWeight="Bold" Foreground="Black"/>
                         </Button.Content>
                     </Button>
 
