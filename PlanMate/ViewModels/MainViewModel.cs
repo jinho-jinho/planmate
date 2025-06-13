@@ -102,7 +102,16 @@ namespace PlanMate.ViewModels
             set { _weatherIcon = value; OnPropertyChanged(nameof(WeatherIcon)); }
         }
 
-        public ObservableCollection<ForecastItem> Forecasts { get; } = new ObservableCollection<ForecastItem>();
+        private string _weatherDescription;
+        public string WeatherDescription
+        {
+            get => _weatherDescription;
+            set { _weatherDescription = value; OnPropertyChanged(nameof(WeatherDescription)); }
+        }
+
+        public ObservableCollection<HourlyForecastItem> HourlyForecasts { get; }
+            = new ObservableCollection<HourlyForecastItem>();
+
         public ICommand ShowForecastCommand { get; }
 
         private readonly WeatherService _weatherService;
@@ -163,7 +172,10 @@ namespace PlanMate.ViewModels
 
             // --- 날씨 관련 초기화 ---
             _weatherService = new WeatherService();
-            ShowForecastCommand = new RelayCommand(_ => LoadAndShowForecast());
+            ShowForecastCommand = new RelayCommand(
+                _ => LoadHourlyForecastAsync(),
+                _ => true
+            );
 
             LoadWeatherAsync();
             _timer = new DispatcherTimer { Interval = TimeSpan.FromMinutes(10) };
@@ -238,7 +250,7 @@ namespace PlanMate.ViewModels
         private void OnAddSchedule()
         {
             // ScheduleDialog를 추가 모드로 열기
-            var dlgVm = new ScheduleDialogViewModel(timeLabels: TimeLabels);
+            var dlgVm = new ScheduleDialogViewModel(null, ScheduleItems, timeLabels: TimeLabels);
             var dlg = new PlanMate.Views.ScheduleDialog(dlgVm)
             {
                 Owner = Application.Current.MainWindow
@@ -296,16 +308,31 @@ namespace PlanMate.ViewModels
             }
         }
 
-        private async void LoadAndShowForecast()
+        private async Task LoadHourlyForecastAsync()
         {
             try
             {
                 var list = await _weatherService.Get5DayForecastAsync();
-                Forecasts.Clear();
-                foreach (var item in list) Forecasts.Add(item);
+                HourlyForecasts.Clear();
+                // 예: 당일 오전 기준 24시간치만
+                foreach (var item in list.Take(24))
+                {
+                    HourlyForecasts.Add(new HourlyForecastItem
+                    {
+                        DateTime = item.DateTime,
+                        Temp = item.Temp,
+                        Icon = item.Icon
+                    });
+                }
+                WeatherDescription = list.FirstOrDefault()?.Description;
 
                 var window = new PlanMate.Views.ForecastWindow { DataContext = this };
+
                 window.Owner = App.Current.MainWindow;
+                window.WindowStartupLocation = WindowStartupLocation.Manual;
+                window.Left = window.Owner.Left + 20;
+                window.Top = window.Owner.Top + 50;
+
                 window.Show();
             }
             catch (Exception ex)

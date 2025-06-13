@@ -38,6 +38,7 @@ public partial class MainWindow : Window
     private Border? selectedBorder = null;
     private DateTime selectedDate = DateTime.Today; // 🔹 기본 선택: 오늘
     public MainViewModel viewModel { get; }
+    private bool _hasScrolledToInitialTime = false;
     // 시간표 드래그용 필드
     private Point _dragStartPoint;
     private bool _isDragging;
@@ -61,8 +62,6 @@ public partial class MainWindow : Window
     {
         InitializeComponent();
 
-        
-
         viewModel = new MainViewModel();  // ViewModel 생성
         DataContext = ViewModel;          // MainWindow를 루트 바인딩 객체로 사용
 
@@ -76,12 +75,31 @@ public partial class MainWindow : Window
         GenerateCalendar();
         LoadSchedules();
 
+        ScheduleCanvas.SizeChanged += (s, e) =>
+        {
+            DrawLines();
+
+            if (!_hasScrolledToInitialTime)
+            {
+                _hasScrolledToInitialTime = true;
+
+                // 8.5시간 = 8시간 30분 -> 분 단위
+                double minutes = 8.5 * 60;
+
+                // 캔버스 전체 높이(24시간 분량)
+                double totalHeight = ScheduleCanvas.ActualHeight;
+
+                // 픽셀로 변환: minutes × totalHeight ÷ (24h*60min)
+                double offset = minutes * totalHeight / (24 * 60);
+
+                // 그 위치를 뷰포트 최상단으로
+                ScheduleScrollViewer.ScrollToVerticalOffset(offset);
+            }
+        };
 
         // 🔹 UI 로드 후 실행할 작업
         Loaded += (s, e) =>
         {
-            DrawLines();
-
             // 반드시 Dispatcher로 지연 실행
             Dispatcher.InvokeAsync(() =>
             {
@@ -275,7 +293,7 @@ public MainViewModel ViewModel => viewModel;
         }
         else if (tabIndex == 2) // 시간표
         {
-            var dlgVm = new ScheduleDialogViewModel(timeLabels: viewModel.TimeLabels);
+            var dlgVm = new ScheduleDialogViewModel(null, viewModel.ScheduleItems, timeLabels: viewModel.TimeLabels);
             var dlg = new ScheduleDialog(dlgVm) { Owner = this };
 
             bool? result = dlg.ShowDialog();
@@ -624,10 +642,15 @@ public MainViewModel ViewModel => viewModel;
     // 요일, 시간마다 구분선 그리기
     private void DrawLines()
     {
-        double canvasWidth = ScheduleCanvas.Width;   // 7일 * 50px = 350
-        double canvasHeight = ScheduleCanvas.Height;  // 24h * 60px = 1440
-        double hourHeight = 60.0;  // 1시간 = 60px
-        double columnWidth = 50.0;  // 1일  = 50px
+        double canvasWidth = ScheduleCanvas.ActualWidth;
+        double canvasHeight = ScheduleCanvas.ActualHeight;
+
+        double hourHeight = canvasHeight / 24.0;    // 1시간 = 캔버스 높이÷24
+        double columnWidth = canvasWidth / 7.0;      // 1일  = 캔버스 너비÷7
+
+        // 기존에 그린 선 지우기 (필요 시)
+        foreach (var line in ScheduleCanvas.Children.OfType<Line>().ToArray())
+            ScheduleCanvas.Children.Remove(line);
 
         // 시간마다 가로선
         for (int hour = 1; hour < 24; hour++)
@@ -642,7 +665,6 @@ public MainViewModel ViewModel => viewModel;
                 Stroke = Brushes.LightGray,
                 StrokeThickness = 1
             };
-            // 일정 아이템들보다 뒤에 배치
             ScheduleCanvas.Children.Insert(0, hLine);
         }
 
@@ -666,34 +688,43 @@ public MainViewModel ViewModel => viewModel;
     // 시간표 스크롤 동기화
     private void ScheduleScrollViewer_ScrollChanged(object sender, ScrollChangedEventArgs e)
     {
-        // 수직 스크롤: 시간축에 동기화
         TimeScrollViewer.ScrollToVerticalOffset(e.VerticalOffset);
-
-        // 수평 스크롤: 요일 헤더에 동기화
         HeaderScrollViewer.ScrollToHorizontalOffset(e.HorizontalOffset);
     }
 
     // 드래그 시작 (일정 추가용)
     private void ScheduleScrollViewer_PreviewMouseLeftButtonDown(object sender, MouseButtonEventArgs e)
     {
+        var orig = e.OriginalSource as DependencyObject;
+        while (orig != null)
+        {
+            if (orig is Border b && b.Name == "ScheduleBlock")
+                return;
+            orig = VisualTreeHelper.GetParent(orig);
+        }
+
+        // 캔버스 좌표
         var canvasPos = e.GetPosition(ScheduleCanvas);
         if (canvasPos.X < 0 || canvasPos.Y < 0 ||
-            canvasPos.X > ScheduleCanvas.Width || canvasPos.Y > ScheduleCanvas.Height)
+            canvasPos.X > ScheduleCanvas.ActualWidth || canvasPos.Y > ScheduleCanvas.ActualHeight)
             return;
 
         _dragStartPoint = canvasPos;
         _isDragging = true;
+
+        double columnWidth = ScheduleCanvas.ActualWidth / 7.0;
 
         _newRectPreview = new Rectangle
         {
             Stroke = Brushes.Gray,
             StrokeDashArray = new DoubleCollection { 3, 3 },
             Fill = new SolidColorBrush(Color.FromArgb(50, 135, 206, 250)),
-            Width = 50, // 요일 너비 50px
+            Width = columnWidth, // 동적 폭
             Height = 0
         };
-        int dayIndex = (int)(canvasPos.X / 50);
-        Canvas.SetLeft(_newRectPreview, dayIndex * 50);
+
+        int dayIndex = Math.Clamp((int)(canvasPos.X / columnWidth), 0, 6);
+        Canvas.SetLeft(_newRectPreview, dayIndex * columnWidth);
         Canvas.SetTop(_newRectPreview, _dragStartPoint.Y);
         ScheduleCanvas.Children.Add(_newRectPreview);
     }
@@ -717,44 +748,56 @@ public MainViewModel ViewModel => viewModel;
         if (!_isDragging || _newRectPreview == null) return;
         _isDragging = false;
 
+        const double dragThreshold = 1.0;
+        if (_newRectPreview.Height < dragThreshold)
+        {
+            ScheduleCanvas.Children.Remove(_newRectPreview);
+            _newRectPreview = null;
+            return;
+        }
+
         try
         {
             var endPoint = e.GetPosition(ScheduleCanvas);
-            int dayIndex = (int)(_dragStartPoint.X / 50);
-            if (dayIndex < 0) dayIndex = 0;
-            if (dayIndex > 6) dayIndex = 6;
+            double canvasHeight = ScheduleCanvas.ActualHeight;
+            double columnWidth = ScheduleCanvas.ActualWidth / 7.0;
+
+            int dayIndex = Math.Clamp((int)(_dragStartPoint.X / columnWidth), 0, 6);
 
             double y1 = Math.Min(_dragStartPoint.Y, endPoint.Y);
             double y2 = Math.Max(_dragStartPoint.Y, endPoint.Y);
 
-            var st = TimeSpan.FromMinutes(y1);
-            var et = TimeSpan.FromMinutes(y2);
+            // 픽셀 → 분 단위 환산
+            double startMinutes = y1 * 24 * 60 / canvasHeight;
+            double endMinutes = y2 * 24 * 60 / canvasHeight;
 
-            var dlgVm = new ScheduleDialogViewModel(existingItem: null, timeLabels: viewModel.TimeLabels);
+            var st = TimeSpan.FromMinutes(startMinutes);
+            var et = TimeSpan.FromMinutes(endMinutes);
+
+            var dlgVm = new ScheduleDialogViewModel(null, viewModel.ScheduleItems);
             dlgVm.Day = (DayOfWeek)dayIndex;
-            dlgVm.StartTimeString = $"{st.Hours:00}:{st.Minutes:00}";
-            dlgVm.EndTimeString = $"{et.Hours:00}:{et.Minutes:00}";
+            dlgVm.StartTime = st;
+            dlgVm.EndTime = et;
 
             var dlg = new ScheduleDialog(dlgVm) { Owner = this };
             bool? result = dlg.ShowDialog();
             if (result == true && dlgVm.NewItem != null)
             {
+                var newItem = dlgVm.NewItem;
+
                 viewModel.ScheduleItems.Add(dlgVm.NewItem);
                 SaveSchedules();
             }
         }
         finally
         {
-            if (_newRectPreview != null)
-            {
-                ScheduleCanvas.Children.Remove(_newRectPreview);
-                _newRectPreview = null;
-            }
+            ScheduleCanvas.Children.Remove(_newRectPreview);
+            _newRectPreview = null;
         }
     }
 
     // 블록 클릭 → 편집/삭제 다이얼로그
-    private void ScheduleBlock_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
+    private void ScheduleBlock_MouseLeftButtonUp(object sender, MouseButtonEventArgs e)
     {
         if (_newRectPreview != null)
         {
@@ -766,19 +809,16 @@ public MainViewModel ViewModel => viewModel;
         if (!(sender is FrameworkElement fe) || !(fe.DataContext is ScheduleItem item))
             return;
 
-        var dlgVm = new ScheduleDialogViewModel(item, viewModel.TimeLabels);
+        var dlgVm = new ScheduleDialogViewModel(item, viewModel.ScheduleItems);
         var dlg = new ScheduleDialog(dlgVm) { Owner = this };
-
         bool? result = dlg.ShowDialog();
 
         if (result == false && dlgVm.RequestDelete)
         {
             viewModel.ScheduleItems.Remove(item);
             SaveSchedules();
-            return;
         }
-
-        if (result == true && !dlgVm.RequestDelete)
+        else if (result == true && !dlgVm.RequestDelete)
         {
             SaveSchedules();
         }
@@ -825,7 +865,6 @@ public MainViewModel ViewModel => viewModel;
             MessageBox.Show($"스케줄 불러오기 오류: {ex.Message}");
         }
     }
-
     #endregion
 
     #region 메모 관련 코드

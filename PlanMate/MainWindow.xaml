@@ -16,7 +16,13 @@
     <Window.Resources>
         <local:BoolToVisibilityConverter x:Key="BoolToVisibilityConverter"/>
         <local:ImportanceToColorConverter x:Key="ImportanceToColorConverter"/>
-        <local:DayToXConverter x:Key="DayToXConverter" ColumnWidth="50"/>
+        <local:DayToXDynamicConverter x:Key="DayToXDynamicConverter"/>
+        <local:HourRowHeightConverter  x:Key="HourRowHeightConverter"/>
+        <local:TimeToYConverter  x:Key="TimeToYConverter"/> 
+        <local:DurationToHeightConverter  x:Key="DurationToHeightConverter"/>
+        <local:DivideConverter x:Key="DivideConverter"/> 
+        <local:MultiplyConverter x:Key="MultiplyConverter"/>
+        <local:ContrastForegroundConverter x:Key="ContrastForegroundConverter"/>
     </Window.Resources>
 
     <Window.InputBindings>
@@ -231,17 +237,17 @@
                                           Grid.Row="0" Grid.Column="1"
                                           HorizontalScrollBarVisibility="Hidden"
                                           VerticalScrollBarVisibility="Disabled">
-                                <UniformGrid Columns="7" Width="350">
-                                    <TextBlock Text="일요일" HorizontalAlignment="Center"/>
-                                    <TextBlock Text="월요일" HorizontalAlignment="Center"/>
-                                    <TextBlock Text="화요일" HorizontalAlignment="Center"/>
-                                    <TextBlock Text="수요일" HorizontalAlignment="Center"/>
-                                    <TextBlock Text="목요일" HorizontalAlignment="Center"/>
-                                    <TextBlock Text="금요일" HorizontalAlignment="Center"/>
-                                    <TextBlock Text="토요일" HorizontalAlignment="Center"/>
+                                <UniformGrid Columns="7" Width="{Binding ElementName=ScheduleScrollViewer, Path=ViewportWidth}">
+                                    <TextBlock Text="일" TextAlignment="Center" Foreground="Red"/>
+                                    <TextBlock Text="월" TextAlignment="Center"/>
+                                    <TextBlock Text="화" TextAlignment="Center"/>
+                                    <TextBlock Text="수" TextAlignment="Center"/>
+                                    <TextBlock Text="목" TextAlignment="Center"/>
+                                    <TextBlock Text="금" TextAlignment="Center"/>
+                                    <TextBlock Text="토" TextAlignment="Center" Foreground="Blue"/>
                                 </UniformGrid>
                             </ScrollViewer>
-
+                            
                             <ScrollViewer x:Name="TimeScrollViewer"
                                           Grid.Row="1" Grid.Column="0"
                                           HorizontalScrollBarVisibility="Disabled"
@@ -250,55 +256,101 @@
                                     <ItemsControl.ItemTemplate>
                                         <DataTemplate>
                                             <TextBlock Text="{Binding}"
-                                                       Height="60" 
-                                                       VerticalAlignment="Top"
                                                        FontSize="10"
                                                        HorizontalAlignment="Right"
-                                                       Margin="0,0,2,0"/>
+                                                       Margin="0,0,2,0">
+                                                <TextBlock.Height>
+                                                    <Binding ElementName="ScheduleScrollViewer"
+                                                             Path="ViewportHeight"
+                                                             Converter="{StaticResource DivideConverter}"
+                                                             ConverterParameter="10"/>
+                                                </TextBlock.Height>
+                                            </TextBlock>
                                         </DataTemplate>
                                     </ItemsControl.ItemTemplate>
                                 </ItemsControl>
                             </ScrollViewer>
 
                             <ScrollViewer x:Name="ScheduleScrollViewer"
-                                          Grid.Row="1" Grid.Column="1"
-                                          HorizontalScrollBarVisibility="Disabled"
-                                          VerticalScrollBarVisibility="Auto"
-                                          ScrollChanged="ScheduleScrollViewer_ScrollChanged"
-                                          PreviewMouseLeftButtonDown="ScheduleScrollViewer_PreviewMouseLeftButtonDown"
-                                          PreviewMouseLeftButtonUp="ScheduleScrollViewer_PreviewMouseLeftButtonUp"
-                                          MouseMove="ScheduleScrollViewer_MouseMove">
-                                <Grid Width="350" Height="1440">
+                                            Grid.Row="1" Grid.Column="1"
+                                            HorizontalScrollBarVisibility="Disabled"
+                                            VerticalScrollBarVisibility="Auto"
+                                            ScrollChanged="ScheduleScrollViewer_ScrollChanged"
+                                            PreviewMouseLeftButtonDown="ScheduleScrollViewer_PreviewMouseLeftButtonDown"
+                                            PreviewMouseLeftButtonUp="ScheduleScrollViewer_PreviewMouseLeftButtonUp"
+                                            MouseMove="ScheduleScrollViewer_MouseMove">
+                                
+                                <Grid   Width  ="{Binding ElementName=ScheduleScrollViewer, Path=ViewportWidth}"
+                                        Height ="{Binding ElementName=ScheduleScrollViewer, Path=ViewportHeight,
+                                                Converter={StaticResource MultiplyConverter},
+                                                ConverterParameter=2.4}"
+                                        HorizontalAlignment="Stretch"
+                                        VerticalAlignment="Stretch">
                                     <Canvas x:Name="ScheduleCanvas"
-                                        Width="350" Height="1440"/>
+                                            HorizontalAlignment="Stretch"
+                                            VerticalAlignment="Stretch"/>
 
                                     <ItemsControl ItemsSource="{Binding ScheduleItems}">
-                                        <ItemsControl.ItemsPanel>
+                                            <ItemsControl.ItemsPanel>
                                             <ItemsPanelTemplate>
-                                                <Canvas Width="350" Height="1440"/>
+                                                <Canvas HorizontalAlignment="Stretch"
+                                                        VerticalAlignment="Stretch"/>
                                             </ItemsPanelTemplate>
                                         </ItemsControl.ItemsPanel>
                                         <ItemsControl.ItemContainerStyle>
                                             <Style TargetType="ContentPresenter">
-                                                <Setter Property="Canvas.Left"
-                                                        Value="{Binding Day, Converter={StaticResource DayToXConverter}}"/>
-                                                <Setter Property="Canvas.Top"
-                                                        Value="{Binding Top}"/>
+                                                <Setter Property="Canvas.Left">
+                                                    <Setter.Value>
+                                                        <MultiBinding Converter="{StaticResource DayToXDynamicConverter}">
+                                                            <Binding Path="Day"/>
+                                                            <Binding ElementName="ScheduleCanvas" Path="ActualWidth"/>
+                                                        </MultiBinding>
+                                                    </Setter.Value>
+                                                </Setter>
+                                                <Setter Property="Canvas.Top">
+                                                    <Setter.Value>
+                                                        <MultiBinding Converter="{StaticResource TimeToYConverter}">
+                                                            <Binding Path="StartTime.TotalMinutes"/>
+                                                            <Binding ElementName="ScheduleCanvas" Path="ActualHeight"/>
+                                                        </MultiBinding>
+                                                    </Setter.Value>
+                                                </Setter>
                                             </Style>
                                         </ItemsControl.ItemContainerStyle>
+
                                         <ItemsControl.ItemTemplate>
                                             <DataTemplate>
                                                 <Border x:Name="ScheduleBlock"
-                                                        Background="LightSkyBlue"
+                                                        Background="{Binding Background}"
                                                         CornerRadius="3"
-                                                        Width="50"
-                                                        Height="{Binding Height}"
-                                                        MouseLeftButtonDown="ScheduleBlock_MouseLeftButtonDown"
-                                                        ToolTip="{Binding Title}">
+                                                        ToolTip="{Binding Title}"
+                                                        MouseLeftButtonUp="ScheduleBlock_MouseLeftButtonUp">
+
+                                                    <Border.Width>
+                                                        <Binding ElementName="ScheduleCanvas"
+                                                                 Path="ActualWidth"
+                                                                 Converter="{StaticResource DivideConverter}"
+                                                                 ConverterParameter="7"/>
+                                                    </Border.Width>
+
+                                                    <Border.Height>
+                                                        <MultiBinding Converter="{StaticResource DurationToHeightConverter}">
+                                                            <Binding Path="Height"/>
+                                                            <Binding ElementName="ScheduleCanvas" Path="ActualHeight"/>
+                                                        </MultiBinding>
+                                                    </Border.Height>
+
                                                     <TextBlock Text="{Binding Title}"
                                                                TextWrapping="Wrap"
-                                                               FontSize="9"
-                                                               Margin="2"/>
+                                                               Margin="2"
+                                                               Foreground="{Binding Background, Converter={StaticResource ContrastForegroundConverter}}">
+                                                        <TextBlock.FontSize>
+                                                            <Binding ElementName="ScheduleScrollViewer"
+                                                                     Path="ViewportHeight"
+                                                                     Converter="{StaticResource MultiplyConverter}"
+                                                                     ConverterParameter="0.02"/>
+                                                        </TextBlock.FontSize>
+                                                    </TextBlock>
                                                 </Border>
                                             </DataTemplate>
                                         </ItemsControl.ItemTemplate>
