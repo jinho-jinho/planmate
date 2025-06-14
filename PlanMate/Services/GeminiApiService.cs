@@ -186,15 +186,17 @@ namespace PlanMate.Services
                   ""Day"": ""Monday"",
                   ""StartTime"": ""09:00"",
                   ""EndTime"": ""10:30"",
-                  ""Title"": ""수업 또는 일정 제목""
+                  ""Title"": ""수업 또는 일정 제목"",
+                  ""Color"": ""LightBlue""
                 }}
 
                 설명 없이 JSON만 출력해 줘. 백틱(```)이나 코드블록 없이, 순수 JSON만 줘.
                 요일은 반드시 Monday, Tuesday와 같은 영어 요일로 줘.
                 시간은 HH:mm 형식의 문자열로 줘.
+                Color는 WPF Colors에 존재하는 색상명 중 하나로 줘 (예: LightBlue, Pink, Lavender 등).
                 ";
-
             return await GetResponseAsync(prompt);
         }
+
     }
 }
