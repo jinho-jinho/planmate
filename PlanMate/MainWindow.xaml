@@ -5,7 +5,7 @@
         xmlns:vm="clr-namespace:PlanMate.ViewModels"
         Title="PlanMate"
       Height="800" Width="450"
-      MinWidth="300" MinHeight="500"
+      MinWidth="420" MinHeight="500"
       WindowStyle="None"
       AllowsTransparency="True"
       Background="Transparent"
