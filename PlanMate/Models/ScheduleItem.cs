@@ -1,6 +1,7 @@
 ﻿using System;
 using System.ComponentModel;
 using System.Text.Json.Serialization;
+using System.Windows.Media;
 
 namespace PlanMate.Models
 {
@@ -65,6 +66,24 @@ namespace PlanMate.Models
                 }
             }
         }
+
+        private Color _color = Colors.LightBlue;
+        public Color Color
+        {
+            get => _color;
+            set
+            {
+                if (_color != value)
+                {
+                    _color = value;
+                    OnPropertyChanged(nameof(Color));
+                    OnPropertyChanged(nameof(Background));
+                }
+            }
+        }
+
+        [JsonIgnore]
+        public SolidColorBrush Background => new SolidColorBrush(Color);
 
         [JsonIgnore]
         public double Top => StartTime.TotalMinutes;

@@ -8,7 +8,6 @@
         <local:StartEndTimeInlineConverter x:Key="StartEndTimeInlineConverter"/>
         <local:StartEndTimeFormattedConverter x:Key="StartEndTimeFormattedConverter"/>
         <local:BoolToVisibilityConverter x:Key="BoolToVisibilityConverter"/>
-        <local:DayToXConverter x:Key="DayToXConverter" ColumnWidth="50"/>
         <local:RoleToColorConverter x:Key="RoleToColorConverter"/>
         <local:RoleToAlignmentConverter x:Key="RoleToAlignmentConverter"/>
     </Application.Resources>
