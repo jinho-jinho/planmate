@@ -865,6 +865,17 @@ public MainViewModel ViewModel => viewModel;
             MessageBox.Show($"스케줄 불러오기 오류: {ex.Message}");
         }
     }
+
+    private void ScheduleScrollViewer_MouseLeave(object sender, MouseEventArgs e)
+    {
+        // 드래그 중이었으면 취소하고 미리보기 제거
+        if (_isDragging && _newRectPreview != null)
+        {
+            _isDragging = false;
+            ScheduleCanvas.Children.Remove(_newRectPreview);
+            _newRectPreview = null;
+        }
+    }
     #endregion
 
     #region 메모 관련 코드
@@ -908,6 +919,9 @@ public MainViewModel ViewModel => viewModel;
         Placeholder.Visibility = string.IsNullOrWhiteSpace(ContentBox.Text)
                                   ? Visibility.Visible
                                   : Visibility.Collapsed;
+
+        if (viewModel.SelectedMemo == null)
+            Placeholder.Visibility = Visibility.Collapsed;
     }
 
     private bool isListVisible = true;

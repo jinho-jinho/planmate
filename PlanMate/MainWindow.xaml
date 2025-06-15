@@ -272,13 +272,14 @@
                             </ScrollViewer>
 
                             <ScrollViewer x:Name="ScheduleScrollViewer"
-                                            Grid.Row="1" Grid.Column="1"
-                                            HorizontalScrollBarVisibility="Disabled"
-                                            VerticalScrollBarVisibility="Auto"
-                                            ScrollChanged="ScheduleScrollViewer_ScrollChanged"
-                                            PreviewMouseLeftButtonDown="ScheduleScrollViewer_PreviewMouseLeftButtonDown"
-                                            PreviewMouseLeftButtonUp="ScheduleScrollViewer_PreviewMouseLeftButtonUp"
-                                            MouseMove="ScheduleScrollViewer_MouseMove">
+                                          Grid.Row="1" Grid.Column="1"
+                                          HorizontalScrollBarVisibility="Disabled"
+                                          VerticalScrollBarVisibility="Auto"
+                                          ScrollChanged="ScheduleScrollViewer_ScrollChanged"
+                                          PreviewMouseLeftButtonDown="ScheduleScrollViewer_PreviewMouseLeftButtonDown"
+                                          PreviewMouseLeftButtonUp="ScheduleScrollViewer_PreviewMouseLeftButtonUp"
+                                          MouseMove="ScheduleScrollViewer_MouseMove"
+                                          MouseLeave="ScheduleScrollViewer_MouseLeave">
                                 
                                 <Grid   Width  ="{Binding ElementName=ScheduleScrollViewer, Path=ViewportWidth}"
                                         Height ="{Binding ElementName=ScheduleScrollViewer, Path=ViewportHeight,
@@ -395,7 +396,18 @@
                                                  FontWeight="Bold"
                                                  FontSize="16"
                                                  BorderThickness="0"
-                                                 Margin="0,0,0,5"/>
+                                                 Margin="0,0,0,5">
+                                            <TextBox.Style>
+                                                <Style TargetType="TextBox">
+                                                    <Setter Property="IsEnabled" Value="True"/>
+                                                    <Style.Triggers>
+                                                        <DataTrigger Binding="{Binding SelectedMemo}" Value="{x:Null}">
+                                                            <Setter Property="IsEnabled" Value="False"/>
+                                                        </DataTrigger>
+                                                    </Style.Triggers>
+                                                </Style>
+                                            </TextBox.Style>
+                                        </TextBox>
 
                                         <Grid Grid.Row="1">
                                             <TextBox x:Name="ContentBox"
@@ -408,7 +420,18 @@
                                                      Foreground="Black"
                                                      GotFocus="ContentBox_GotFocus"
                                                      LostFocus="ContentBox_LostFocus"
-                                                     TextWrapping="Wrap"/>
+                                                     TextWrapping="Wrap">
+                                                <TextBox.Style>
+                                                    <Style TargetType="TextBox">
+                                                        <Setter Property="IsEnabled" Value="True"/>
+                                                        <Style.Triggers>
+                                                            <DataTrigger Binding="{Binding SelectedMemo}" Value="{x:Null}">
+                                                                <Setter Property="IsEnabled" Value="False"/>
+                                                            </DataTrigger>
+                                                        </Style.Triggers>
+                                                    </Style>
+                                                </TextBox.Style>
+                                            </TextBox>
 
                                             <TextBlock x:Name="Placeholder"
                                                        Text="내용 입력"
