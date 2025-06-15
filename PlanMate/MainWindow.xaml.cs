@@ -18,6 +18,7 @@ using System.Windows.Media.Imaging;
 using System.Windows.Media.Media3D;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
+using System.Windows.Threading;
 using Path = System.IO.Path;
 
 namespace PlanMate;
@@ -39,6 +40,7 @@ public partial class MainWindow : Window
     private DateTime selectedDate = DateTime.Today; // 🔹 기본 선택: 오늘
     public MainViewModel viewModel { get; }
     private bool _hasScrolledToInitialTime = false;
+    private bool _internalDisplayModeChange = false;
     // 시간표 드래그용 필드
     private Point _dragStartPoint;
     private bool _isDragging;
@@ -371,6 +373,9 @@ public MainViewModel ViewModel => viewModel;
 
     private void MonthCalendar_DisplayModeChanged(object sender, CalendarModeChangedEventArgs e)
     {
+        if (_internalDisplayModeChange)
+            return;
+
         if (MonthCalendar.DisplayMode == CalendarMode.Month)
         {
             var selected = MonthCalendar.DisplayDate;
@@ -379,7 +384,20 @@ public MainViewModel ViewModel => viewModel;
             MonthPopup.IsOpen = false; // 팝업 닫기
         }
     }
+    private void MonthPopup_Opened(object sender, EventArgs e)
+    {
+        _internalDisplayModeChange = true;
 
+        MonthCalendar.DisplayMode = CalendarMode.Month;
+        MonthCalendar.UpdateLayout();
+
+        Dispatcher.BeginInvoke(new Action(() =>
+        {
+            MonthCalendar.DisplayMode = CalendarMode.Year;
+
+            _internalDisplayModeChange = false;
+        }), DispatcherPriority.Loaded);
+    }
 
     private void GenerateCalendar()
     {

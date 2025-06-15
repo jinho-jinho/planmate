@@ -192,7 +192,8 @@
                                            Placement="Bottom"
                                            StaysOpen="False"
                                            AllowsTransparency="True"
-                                           PopupAnimation="Fade">
+                                           PopupAnimation="Fade"
+                                           Opened="MonthPopup_Opened">
                                         <Border Background="White" BorderBrush="Gray" BorderThickness="1" Padding="5">
                                             <Calendar x:Name="MonthCalendar"
                                                       DisplayMode="Year"
