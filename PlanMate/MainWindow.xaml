@@ -26,8 +26,8 @@
     </Window.Resources>
 
     <Window.InputBindings>
-        <KeyBinding Modifiers="Control" Key="N" Command="{Binding AddMemoCommand}" />
-        <KeyBinding Modifiers="Control" Key="D" Command="{Binding RemoveMemoCommand}" />
+        <KeyBinding Modifiers="Control" Key="N" Command="{Binding AddMemoCommand}"/>
+        <KeyBinding Modifiers="Control" Key="D" Command="{Binding RemoveMemoCommand}"/>
     </Window.InputBindings>
 
     <Border Background="White" CornerRadius="20">
@@ -421,6 +421,7 @@
                                                      Foreground="Black"
                                                      GotFocus="ContentBox_GotFocus"
                                                      LostFocus="ContentBox_LostFocus"
+                                                     TextChanged="ContentBox_TextChanged"
                                                      TextWrapping="Wrap">
                                                 <TextBox.Style>
                                                     <Style TargetType="TextBox">
@@ -445,7 +446,8 @@
                                                         HorizontalAlignment="Right"
                                                         VerticalAlignment="Bottom"
                                                         Margin="0,0,10,10">
-                                                <Button Content="🗑️"
+                                                <Button x:Name="DeleteButton"
+                                                        Content="🗑️"
                                                         Width="30" Height="30"
                                                         Background="Transparent"
                                                         Command="{Binding RemoveMemoCommand}"

@@ -902,18 +902,14 @@ public MainViewModel ViewModel => viewModel;
         SetPlaceholder();
     }
 
-    //private void MainTab_SelectionChanged(object sender, SelectionChangedEventArgs e)
-    //{
-        
-    //}
-
     private void ViewModel_PropertyChanged(object sender, PropertyChangedEventArgs e)
     {
-        if (e.PropertyName == nameof(PlanMate.ViewModels.MainViewModel.SelectedMemo))
+        if (e.PropertyName == nameof(MainViewModel.SelectedMemo))
         {
             MainTab.SelectedIndex = 3;
             TitleBox.Focus();
-            Placeholder.Visibility = Visibility.Collapsed;
+            Dispatcher.BeginInvoke((Action)(() => SetPlaceholder()),
+                                   DispatcherPriority.ContextIdle);
         }
     }
 
@@ -955,6 +951,9 @@ public MainViewModel ViewModel => viewModel;
             : new Thickness(0, 10, 0, 0);   // 패널 숨겨질 때 왼쪽으로 이동
     }
 
-
+    private void ContentBox_TextChanged(object sender, TextChangedEventArgs e)
+    {
+        SetPlaceholder();
+    }
     #endregion
 }
